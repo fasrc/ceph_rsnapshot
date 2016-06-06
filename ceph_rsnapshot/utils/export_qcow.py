@@ -14,10 +14,10 @@ import argparse
 import json
 import time
 
+from ceph_rsnapshot.logging import setup_logging
+
 temp_path = '/tmp/qcows'
 min_freespace = 100*1024*1024 # 100mb
-
-sh_logging = False
 
 
 def setup_temp_path():
@@ -45,7 +45,7 @@ def get_rbd_size(image,cluster,snap=''):
 def get_today():
   return sh.date('--iso').strip('\n')
 
-def export_qcow(image,pool,cephuser,cluster,snap='',path=temp_path):
+def export_qcow_sh(image,pool,cephuser,cluster,snap='',path=temp_path):
   if snap == '':
     snap = get_today()
   # use this because it has a dash in the command name
@@ -66,7 +66,7 @@ def export_qcow(image,pool,cephuser,cluster,snap='',path=temp_path):
     raise NameError('error_exporting_qcow')
   return elapsed_time_ms
 
-if __name__ == '__main__':
+def export_qcow():
   parser = argparse.ArgumentParser(description='Export a rbd image to qcow')
   parser.add_argument('image')
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
   # export qcow
   try:
-    elapsed_time_ms=export_qcow(image,pool='rbd',cephuser='admin',cluster='ceph')
+    elapsed_time_ms=export_qcow_sh(image,pool='rbd',cephuser='admin',cluster='ceph')
     logger.info('image %s successfully exported in %sms' % (image, elapsed_time_ms))
   except Exception as e:
     logger.error(e)

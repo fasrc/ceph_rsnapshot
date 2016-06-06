@@ -9,8 +9,7 @@ import argparse
 import json
 import os, sys, socket, logging
 
-# helpers from ceph-rsnapshot common
-from common import setup_logging
+from ceph_rsnapshot.logging import setup_logging
 
 
 # images are one-NN
@@ -51,7 +50,7 @@ def check_snap(image,pool='rbd',snap=''):
     #   raise NameError, "today snap does not exist for image %s" % image
   return True
 
-if __name__ == '__main__':
+def gathernames():
   parser = argparse.ArgumentParser(description='Gather a list of rbd images in a given pool with snaps from today')
   parser.add_argument('pool', help='ceph pool to get list of rbd images for')
   # parser.add_argument('image')

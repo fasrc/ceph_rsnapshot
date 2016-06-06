@@ -374,7 +374,7 @@ def rsnap_pool(host,
 # if not cli then check env
 
 # enty for the rsnap node
-def ceph_rsnap():
+def ceph_rsnapshot():
 # if __name__=='__main__':
   parser = argparse.ArgumentParser(description='wrapper script to backup a ceph pool of rbd images to qcow')
   parser.add_argument("--host", required=True, help="ceph node to backup from")
@@ -419,12 +419,3 @@ def ceph_rsnap():
   else:
     sys.exit(0)
 
-
-
-# 3 entry for ceph node
-
-
-
-def export_qcow():
-  
-  export_qcow()
