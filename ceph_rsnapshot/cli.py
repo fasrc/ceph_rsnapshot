@@ -8,22 +8,19 @@ import os
 import sys
 from string import Template
 
-import argparse, logging, socket,time
+import argparse, socket,time
 import re
 
-from ceph_rsnapshot.helpers import qcow
-qcow.remove
+import logging
 
+# from ceph_rsnapshot.helpers import qcow
+# qcow.remove
 
-from ceph_rsnapshot.common import setup_logging
-
-setup_logging.setup_logging()
+from ceph_rsnapshot.logs import setup_logging
 
 image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 # note using . in middle to tell rsnap where to base relative
 temp_path = '/tmp/qcows/./'
-
-sh_logging = False
 
 def get_names_on_source(host, pool):
   # FIXME validate pool name no spaces?
@@ -81,7 +78,7 @@ def write_conf(image,
   return conf_file.name
 
 # mkstemp
-fdopen
+# fdopen
 
 
 
@@ -145,47 +142,6 @@ def rotate_orphans(pool='rbd',backup_base_path = '/backups/vms', conf_base_path 
       logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     remove_conf(orphan,pool)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
-
-def setup_logging(log_location='/var/log/ceph-rsnapshot/', log_filename='ceph-rsnapshot', verbose=False):
-  logger = logging.getLogger(__name__)
-  # get logger for sh module so we can configure it as well
-  sh_logger = logging.getLogger('sh.command')
-
-  log_level = logging.INFO
-  if verbose == True:
-    log_level = logging.DEBUG
-  if not os.path.isdir(log_location):
-    os.makedirs(log_location)
-  log_file = "%s/%s.log" % (log_location, log_filename)
-  # logging.basicConfig(filename=log_file, level=log_level)
-
-  logger.setLevel(log_level)
-  if sh_logging:
-    sh_logger.setLevel(log_level)
-
-  # setup log format
-  pid = os.getpid()
-  hostname = socket.gethostname()
-  LOG_FORMAT = ("%(asctime)s [" + hostname + " PID:" + str(pid) +
-                "] [%(levelname)-5.5s] [%(name)s] %(message)s")
-  # LOG_FORMAT = ("%(asctime)s [" + str(pid) +
-  #               "] [%(levelname)-5.5s] [%(name)s] %(message)s")
-  logFormatter = logging.Formatter(LOG_FORMAT)
-
-  # set format on file loggers
-  fileHandler = logging.FileHandler(log_file)
-  fileHandler.setFormatter(logFormatter)
-  logger.addHandler(fileHandler)
-  if sh_logging:
-    sh_logger.addHandler(fileHandler)
-
-  # setup console loggers
-  consoleHandler = logging.StreamHandler(stream=sys.stdout)
-  consoleHandler.setFormatter(logFormatter)
-  logger.addHandler(consoleHandler)
-  if sh_logging:
-    sh_logger.addHandler(consoleHandler)
-  return(logger)
 
 def export_qcow(image,host,pool='rbd'):
   logger.info("exporting %s" % image)
@@ -394,7 +350,7 @@ def ceph_rsnapshot():
     # FIXME not working correctly
   # image_filter = args.image_filter
 
-  logger = setup_logging(verbose=verbose)
+  logger = setup_logging(log_filename='ceph_rsnapshot', verbose=verbose)
   logger.debug(" ".join(sys.argv))
 
   result = rsnap_pool(host=host,pool=pool,keepconf=keepconf,extra_args = extra_args)

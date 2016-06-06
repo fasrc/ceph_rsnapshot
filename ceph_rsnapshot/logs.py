@@ -1,6 +1,7 @@
 # logging setup
 
 import sh
+import logging
 
 sh_logging = False
 

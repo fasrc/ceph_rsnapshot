@@ -5,7 +5,7 @@ import os, sys, socket, logging
 import sh
 import argparse
 
-from ceph_rsnapshot.logging import setup_logging
+from ceph_rsnapshot.logs import setup_logging
 
 temp_path = '/tmp/qcows'
 

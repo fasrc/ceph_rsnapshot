@@ -9,7 +9,7 @@ import argparse
 import json
 import os, sys, socket, logging
 
-from ceph_rsnapshot.logging import setup_logging
+from ceph_rsnapshot.logs import setup_logging
 
 
 # images are one-NN

@@ -97,10 +97,10 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'ceph_rsnapshot=cli:ceph_rsnapshot',
-            'export_qcow=utils:export_qcow:export_qcow',
-            'remove_qcow=utils:remove_qcow:remove_qcow',
-            'gathernames=utils:gathernames:gathernames',
+            'ceph_rsnapshot = ceph_rsnapshot.cli:ceph_rsnapshot',
+            'export_qcow = ceph_rsnapshot.utils.export_qcow:export_qcow',
+            'remove_qcow = ceph_rsnapshot.utils.remove_qcow:remove_qcow',
+            'gathernames = ceph_rsnapshot.utils.gathernames:gathernames',
         ],
     },
 )
