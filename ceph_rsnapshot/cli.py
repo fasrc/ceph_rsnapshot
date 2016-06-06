@@ -11,6 +11,14 @@ from string import Template
 import argparse, logging, socket,time
 import re
 
+from ceph_rsnapshot.helpers import qcow
+qcow.remove
+
+
+from ceph_rsnapshot.common import setup_logging
+
+setup_logging.setup_logging()
+
 image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 # note using . in middle to tell rsnap where to base relative
 temp_path = '/tmp/qcows/./'
@@ -33,6 +41,7 @@ def get_names_on_source(host, pool):
   return names_on_source
 
 def get_template():
+  # get path to this from setuptools
   f=open('rsnapshot.template','r')
   # FIXME raise error if error
   template_string = ''.join(f.readlines())
@@ -70,6 +79,11 @@ def write_conf(image,
   conf_file.write(my_template)
   # FIXME raise error if error
   return conf_file.name
+
+# mkstemp
+fdopen
+
+
 
 def remove_conf(image,pool='rbd'):
   os.remove('/etc/rsnapshot/vms/%s.conf' % image)
@@ -286,7 +300,7 @@ def rsnap_image(image,
 def rsnap_pool(host,
                pool,
                # temp_path: note the . needed to set where to relative from
-               temp_path='/tmp/qcows/./',
+               temp_path='/tmp/qcows/./', 
                extra_args='',
                template = None,
                conf_base_path = '/etc/rsnapshot/vms',
@@ -294,7 +308,7 @@ def rsnap_pool(host,
                keepconf = False):
 
   # start run
-  logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (pool, backup_base_path, pool))
+  logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (settings.POOL, backup_base_path, pool))
 
   # get list of images from source
   names_on_source = get_names_on_source(host=host,pool=pool)
@@ -357,9 +371,11 @@ def rsnap_pool(host,
         })
 
 
+# if not cli then check env
 
-
-if __name__=='__main__':
+# enty for the rsnap node
+def ceph_rsnap():
+# if __name__=='__main__':
   parser = argparse.ArgumentParser(description='wrapper script to backup a ceph pool of rbd images to qcow')
   parser.add_argument("--host", required=True, help="ceph node to backup from")
   parser.add_argument('-p', '--pool', help='ceph pool to back up', required=False, default='rbd')
@@ -402,3 +418,13 @@ if __name__=='__main__':
     sys.exit(2)
   else:
     sys.exit(0)
+
+
+
+# 3 entry for ceph node
+
+
+
+def export_qcow():
+  
+  export_qcow()

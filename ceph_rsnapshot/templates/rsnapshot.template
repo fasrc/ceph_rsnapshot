@@ -12,3 +12,19 @@ verbose		1
 loglevel	4
 rsync_short_args	-aA
 rsync_long_args	--delete --numeric-ids --relative --delete-excluded
+
+#Target dir
+snapshot_root	$destination
+
+#How many to keep
+retain	$retain_interval	$retain_number
+
+#Log file
+logfile	/var/log/rsnapshot/$nickname.log
+
+#Lockfile, must be unique, so backups don't collide but others can run
+lockfile	/var/run/rsnapshot_$nickname.pid
+
+#Source dir
+backup	$source	$subdir	$extra_args
+
