@@ -1,0 +1,2 @@
+# Puppet will install and/or update pip packages listed here
+sh==1.11

@@ -1,0 +1,14 @@
+#Defaults for rsnaps
+config_version	1.2
+cmd_cp		/bin/cp
+cmd_rm		/bin/rm
+cmd_rsync	/usr/bin/rsync
+cmd_logger	/usr/bin/logger
+cmd_du		/usr/bin/du
+cmd_rsnapshot_diff	/usr/bin/rsnapshot-diff
+cmd_ssh	/usr/bin/ssh
+ssh_args	-c arcfour
+verbose		1
+loglevel	4
+rsync_short_args	-aA
+rsync_long_args	--delete --numeric-ids --relative --delete-excluded

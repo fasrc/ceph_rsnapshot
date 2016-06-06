@@ -1,0 +1,18 @@
+#include defaults
+include_conf	/etc/rsnapshot/rsnapshot.include
+
+#Target dir
+snapshot_root	$destination
+
+#How many to keep
+retain	$retain_interval	$retain_number
+
+#Log file
+logfile	/var/log/rsnapshot/$nickname.log
+
+#Lockfile, must be unique, so backups don't collide but others can run
+lockfile	/var/run/rsnapshot_$nickname.pid
+
+#Source dir
+backup	$source	$subdir	$extra_args
+
