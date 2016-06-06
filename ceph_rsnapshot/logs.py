@@ -1,7 +1,6 @@
 # logging setup
 
-import sh
-import logging
+import sh, sys, os, socket, logging
 
 sh_logging = False
 
