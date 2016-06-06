@@ -1,4 +1,5 @@
-#Defaults for rsnaps
+# ceph_rsnapshot config file for rsnapshot
+
 config_version	1.2
 cmd_cp		/bin/cp
 cmd_rm		/bin/rm
@@ -11,7 +12,7 @@ ssh_args	-c arcfour
 verbose		1
 loglevel	4
 rsync_short_args	-aA
-rsync_long_args	--delete --numeric-ids --relative --delete-excluded
+rsync_long_args	--delete --numeric-ids --relative --delete-excluded $extra_args
 
 #Target dir
 snapshot_root	$destination
@@ -26,5 +27,5 @@ logfile	/var/log/rsnapshot/$nickname.log
 lockfile	/var/run/rsnapshot_$nickname.pid
 
 #Source dir
-backup	$source	$subdir	$extra_args
+backup	$source	$subdir
 
