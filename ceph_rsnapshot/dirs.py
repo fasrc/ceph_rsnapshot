@@ -103,6 +103,6 @@ def remove_temp_conf_dir():
     try:
       os.rmdir(settings.TEMP_CONF_DIR)
       # TODO all pools
-      os.rmdir("%s/%s" % (settings.TEMP_CONF_DIR, pool)
+      os.rmdir("%s/%s" % (settings.TEMP_CONF_DIR, pool))
     except Exception as e:
       logger.warning("unable to remove temp conf dir with error %s" % e)
