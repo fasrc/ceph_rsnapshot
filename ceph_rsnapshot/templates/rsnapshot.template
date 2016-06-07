@@ -12,7 +12,7 @@ ssh_args	-c arcfour
 verbose		1
 loglevel	4
 rsync_short_args	-aA
-rsync_long_args	--delete --numeric-ids --relative --delete-excluded {{ extra_args }}
+rsync_long_args	--delete --numeric-ids --delete-excluded {{ extra_args }}
 
 #Target dir
 snapshot_root	{{ destination }}
