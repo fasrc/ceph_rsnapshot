@@ -19,7 +19,7 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.0.1',
+    version='0.0.2',
 
     description='Ceph rbd backup to qcow via rsnapshot',
     long_description=long_description,
@@ -98,6 +98,7 @@ setup(
     entry_points={
         'console_scripts': [
             'ceph_rsnapshot = ceph_rsnapshot.cli:ceph_rsnapshot',
+            'ceph_rsnapshot_test_template = ceph_rsnapshot.templates:test_template',
             'export_qcow = ceph_rsnapshot.utils.export_qcow:export_qcow',
             'remove_qcow = ceph_rsnapshot.utils.remove_qcow:remove_qcow',
             'gathernames = ceph_rsnapshot.utils.gathernames:gathernames',
