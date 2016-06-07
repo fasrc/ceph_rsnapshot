@@ -20,7 +20,7 @@ from ceph_rsnapshot.logs import setup_logging
 from ceph_rsnapshot import logs
 from ceph_rsnapshot.templates import remove_conf, write_conf, get_template
 # FIXME do imports this way not the above
-from ceph_rsnapshot import settings, templates
+from ceph_rsnapshot import settings, templates, dirs
 
 
 image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
@@ -70,17 +70,7 @@ def get_orphans_on_dest(pool='rbd',backup_base_path='/backups/vms'):
   orphans_on_dest = list(set(names_on_dest) - set(names_on_source))
   return orphans_on_dest
 
-# check that temp_path is empty
-def make_empty_source():
-  temp_path = settings.QCOW_TEMP_PATH
-  # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
-  try:
-    dirlist = os.listdir(temp_path)
-    if len(dirlist) != 0:
-      raise NameError('temp_path_not_empty')
-  except:
-    os.mkdir(temp_path,0700)
+
 
 
 def rotate_orphans(pool=''):
@@ -99,7 +89,7 @@ def rotate_orphans(pool=''):
 
   for orphan in orphans_on_dest:
     logger.info('orphan: %s' % orphan)
-    make_empty_source() #FIXME do this only once
+    dirs.make_empty_source() # do this every time to be sure it's empty
     # note this uses temp_path on the dest - which we check to be empty
     conf_file = write_conf(orphan,
                            pool = pool,
@@ -339,7 +329,10 @@ def ceph_rsnapshot():
   logger = setup_logging()
   logger.debug("launched with cli args: " + " ".join(sys.argv))
 
+  # TODO move this to dirs
   templates.setup_temp_conf_dir(pool)
+  dirs.setup_backup_dirs()
+  dirs.setup_log_dirs()
 
   # TODO wrap pools here
   # for pool in POOLS:
@@ -367,5 +360,3 @@ def ceph_rsnapshot():
     sys.exit(0)
 
 
-def test_template():
-  print('foo')
