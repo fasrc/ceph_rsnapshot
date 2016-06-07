@@ -177,19 +177,13 @@ def rsnap_image(image,
   export_qcow_ok = False
   rsnap_ok = False
   remove_qcow_ok = False
-  # create backup path from base and image name
-  backup_path = "%s/%s" % (backup_base_path, pool)
+
   # only reopen if we haven't pulled this yet - ie, are we part of a pool run
   if not template:
     template = get_template()
+
   # create the temp conf file
-  conf_file = write_conf(image,
-                         host = host,
-                         temp_path = temp_path,
-                         backup_base_path = backup_base_path,
-                         conf_base_path = conf_base_path,
-                         extra_args = extra_args,
-                         template = template)
+  conf_file = write_conf(image, template = template)
   logger.info(conf_file)
 
   # ssh to source and export temp qcow of this image
@@ -329,8 +323,15 @@ def ceph_rsnapshot():
   # FIXME override settings from cli args
   settings.load_settings()
 
-  logger = setup_logging(log_filename='ceph_rsnapshot', verbose=verbose)
-  logger.debug(" ".join(sys.argv))
+  # override global settings with cli args
+  settings.CEPH_HOST = host
+  settings.POOL = pool
+  settings.VERBOSE = verbose
+  settings.EXTRA_ARGS = extra_args
+  settings.KEEPCONF = keepconf
+
+  logger = setup_logging()
+  logger.debug("launched with cli args: " + " ".join(sys.argv))
 
   result = rsnap_pool(host=host,pool=pool,keepconf=keepconf,extra_args = extra_args)
 

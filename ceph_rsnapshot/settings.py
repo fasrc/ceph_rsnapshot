@@ -12,8 +12,9 @@ SETTINGS = dict(
   CEPH_HOST='localhost',
   # TODO allow an array here
   POOL='rbd',
+  # path for the temporary export of qcows
   # note the . is needed for rsync to set relative
-  TEMP_PATH='/tmp/qcows/./',
+  QCOW_TEMP_PATH='/tmp/qcows/./',
   EXTRA_ARGS='',
   # prefix for temp dir to store temporary rsnapshot conf files
   TEMP_CONF_DIR_PREFIX='ceph_rsnapshot_temp_conf_',
@@ -23,13 +24,16 @@ SETTINGS = dict(
   KEEPCONF=False,
   LOG_BASE_PATH='/var/log/ceph_rsnapshot',
   LOG_FILENAME='ceph_rsnapshot.log',
-  TEMPLATE='',
+  # TODO allow specifying alt path to a jinja template
+  # TEMPLATE = '',
   VERBOSE=False,
   # opennebula images are one-NN
   # vms are one-NN-XX-YY for image NN vm XX and disk YY
   # images or vms are (with the additional accidental acceptance of one-NN-XX
   # RE to filter ceph rbd images to back up
   IMAGE_RE=r'^one(-[0-9]+){1,3}$',
+  RETAIN_INTERVAL='daily',
+  RETAIN_NUMBER=14,
   # date format string to pass to `date` to get snap naming,
   # iso format %Y-%m-%d would yield names like imagename@2016-10-04
   SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',

@@ -14,7 +14,7 @@ import argparse
 import json
 import time
 
-from ceph_rsnapshot.logs import setup_logging
+from ceph_rsnapshot.logs import setup_logging()
 
 temp_path = '/tmp/qcows'
 min_freespace = 100*1024*1024 # 100mb
@@ -79,7 +79,7 @@ def export_qcow():
   args = parser.parse_args()
   image = args.image
 
-  logger = setup_logging(log_filename='export_qcow')
+  logger = setup_logging()
 
   logger.info("exporting %s..." % image)
 
