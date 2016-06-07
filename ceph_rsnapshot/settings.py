@@ -5,7 +5,11 @@ import tempfile
 
 import yaml, logging
 
-DEFAULT_CONFIG = 'ceph_rsnapshot.yaml'
+DEFAULT_CONFIG_HIERARCHY = [
+  'ceph_rsnapshot.yaml',
+  '/etc/ceph_rsnapshot/ceph_rsnapshot.yaml',
+]
+
 
 
 SETTINGS = dict(
@@ -45,8 +49,13 @@ SETTINGS = dict(
 )
 
 
-def load_settings(config_file=DEFAULT_CONFIG):
+def load_settings(config_file=''):
   logger = logging.getLogger('ceph_rsnapshot')
+  if config_file=='':
+    for conf_file in DEFAULT_CONFIG_HIERARCHY:
+      if os.path.isfile(conf_file):
+        config_file = conf_file
+        break
   settings = SETTINGS.copy()
   if os.path.isfile(config_file):
     with open(config_file) as f:
