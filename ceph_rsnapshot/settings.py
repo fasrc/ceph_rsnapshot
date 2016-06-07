@@ -56,7 +56,7 @@ def load_settings(config_file=DEFAULT_CONFIG):
         logger.error('ERROR: unsupported setting %s\n' % setting)
         sys.exit(1)
       else:
-        if setting.upper() == TEMP_CONF_DIR:
+        if setting.upper() == 'TEMP_CONF_DIR':
           # FIXME make sure KEEPCONF is enabled
           pass
         settings[setting.upper()] = cfg[setting]
