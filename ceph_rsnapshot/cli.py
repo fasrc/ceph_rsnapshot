@@ -27,7 +27,9 @@ image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 # note using . in middle to tell rsnap where to base relative
 temp_path = '/tmp/qcows/./'
 
-def get_names_on_source(pool):
+def get_names_on_source(pool=''):
+  if not pool:
+    pool = settings.POOL
   host = settings.CEPH_HOST
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
@@ -47,7 +49,10 @@ def get_names_on_source(pool):
 
 
 
-def get_names_on_dest(pool='rbd',backup_base_path='/backups/vms'):
+def get_names_on_dest(pool=''):
+  if not pool:
+    pool = settings.POOL
+  backup_base_path=settings.BACKUP_BASE_PATH
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   backup_path = "%s/%s" % (backup_base_path, pool)
@@ -60,7 +65,10 @@ def get_names_on_dest(pool='rbd',backup_base_path='/backups/vms'):
   return names_on_dest
 
 # FIXME use same list of names on source
-def get_orphans_on_dest(pool='rbd',backup_base_path='/backups/vms'):
+def get_orphans_on_dest(pool=''):
+  if not pool:
+    pool = settings.POOL
+  backup_base_path = settings.BACKUP_BASE_PATH
   host = settings.CEPH_HOST
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
@@ -80,7 +88,7 @@ def rotate_orphans(pool=''):
 
   # now check for ophans on dest
   backup_path = "%s/%s" % (backup_base_path, pool)
-  orphans_on_dest = get_orphans_on_dest(pool=pool, backup_path=backup_path)
+  orphans_on_dest = get_orphans_on_dest(pool=pool)
 
   orphans_rotated = []
   orphans_failed_to_rotate = []
