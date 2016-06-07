@@ -12,20 +12,19 @@ ssh_args	-c arcfour
 verbose		1
 loglevel	4
 rsync_short_args	-aA
-rsync_long_args	--delete --numeric-ids --relative --delete-excluded $extra_args
+rsync_long_args	--delete --numeric-ids --relative --delete-excluded {{ extra_args }}
 
 #Target dir
-snapshot_root	$destination
+snapshot_root	{{ destination }}
 
 #How many to keep
-retain	$retain_interval	$retain_number
+retain	{{ retain_interval }}	{{ retain_number }}
 
 #Log file
-logfile	/var/log/rsnapshot/$nickname.log
+logfile	{{ log_base_path }}/rsnap/{{ nickname }}.log
 
 #Lockfile, must be unique, so backups don't collide but others can run
-lockfile	/var/run/rsnapshot_$nickname.pid
+lockfile	/var/run/rsnapshot_{{ nickname }}.pid
 
 #Source dir
-backup	$source	$subdir
-
+backup	{{ source }}	{{ subdir }}

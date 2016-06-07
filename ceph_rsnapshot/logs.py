@@ -1,11 +1,15 @@
 # logging setup
 
 import sh, sys, os, socket, logging
+from ceph_rsnapshot import settings
 
-sh_logging = False
 
+def setup_logging():
+  log_location = settings.LOG_BASE_PATH
+  log_filename = settings.LOG_FILENAME
+  sh_logging = settings.SH_LOGGING
+  verbose = settings.VERBOSE
 
-def setup_logging(log_filename, log_location='/var/log/ceph-rsnapshot/', verbose=False):
   logger = logging.getLogger('ceph_rsnapshot')
   # get logger for sh module so we can configure it as well
   sh_logger = logging.getLogger('sh.command')
@@ -45,3 +49,6 @@ def setup_logging(log_filename, log_location='/var/log/ceph-rsnapshot/', verbose
   if sh_logging:
     sh_logger.addHandler(consoleHandler)
   return(logger)
+
+def get_logger():
+  return logging.getLogger('ceph_rsnapshot')

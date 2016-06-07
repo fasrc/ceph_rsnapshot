@@ -18,6 +18,8 @@ import logging
 
 from ceph_rsnapshot.logs import setup_logging
 from ceph_rsnapshot.templates import remove_conf, write_conf, get_template
+# FIXME do imports this way not the above
+from ceph_rsnapshot import settings
 
 
 image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
@@ -323,6 +325,9 @@ def ceph_rsnapshot():
     extra_args = ' '.join(['--'+x for x in args.extralongargs.split(',')])
     # FIXME not working correctly
   # image_filter = args.image_filter
+
+  # FIXME override settings from cli args
+  settings.load_settings()
 
   logger = setup_logging(log_filename='ceph_rsnapshot', verbose=verbose)
   logger.debug(" ".join(sys.argv))

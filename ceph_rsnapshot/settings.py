@@ -15,10 +15,14 @@ SETTINGS = dict(
   # note the . is needed for rsync to set relative
   TEMP_PATH='/tmp/qcows/./',
   EXTRA_ARGS='',
-  CONF_BASE_PATH='/tmp/ceph_rsnapshot/temp_conf',
+  # prefix for temp dir to store temporary rsnapshot conf files
+  TEMP_CONF_DIR_PREFIX='ceph_rsnapshot_temp_conf_',
+  # or can override and set whole dir
+  TEMP_CONF_DIR='',
   BACKUP_BASE_PATH='/backups/vms',
   KEEPCONF=False,
   LOG_BASE_PATH='/var/log/ceph_rsnapshot',
+  LOG_FILENAME='ceph_rsnapshot.log',
   TEMPLATE='',
   VERBOSE=False,
   # opennebula images are one-NN
@@ -52,3 +56,4 @@ def load_settings(config_file=DEFAULT_CONFIG):
     logger.info('WARNING: not loading config - using default settings')
   globals().update(settings)
   return settings
+
