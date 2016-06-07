@@ -1,8 +1,10 @@
 from ceph_rsnapshot import settings, logs
-import os
+import os, sys, tempfile
 
 
-def setup_backup_dirs(dirs=''):
+def setup_backup_dirs(pool,dirs=''):
+  if not pool:
+    pool=settings.POOL
   if not dirs:
     dirs = [ settings.BACKUP_BASE_PATH,
              "%s/%s" % (settings.BACKUP_BASE_PATH, pool),
@@ -13,7 +15,9 @@ def setup_backup_dirs(dirs=''):
   for directory in dirs:
     setup_dir(directory)
 
-def setup_log_dirs():
+def setup_log_dirs(pool):
+  if not pool:
+    pool=settings.POOL
   dirs = [
       settings.LOG_BASE_PATH,
       "%s/rsnap" % settings.LOG_BASE_PATH,
@@ -23,6 +27,8 @@ def setup_log_dirs():
     setup_dir(directory)
 
 def setup_temp_conf_dir(pool):
+  if not pool:
+    pool=settings.POOL
   logger = logs.get_logger()
   if settings.TEMP_CONF_DIR:
     if os.path.isdir(settings.TEMP_CONF_DIR):
@@ -49,6 +55,8 @@ def setup_temp_conf_dir(pool):
 
 # make path to export qcows to
 def setup_qcow_temp_path(pool):
+  if not pool:
+    pool=settings.POOL
   logger = logs.get_logger()
   temp_path = settings.QCOW_TEMP_PATH
   if not os.path.isdir(temp_path):
