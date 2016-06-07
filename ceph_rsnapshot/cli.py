@@ -353,6 +353,9 @@ def ceph_rsnapshot():
   #   settings.POOL=pool
   result = rsnap_pool(pool)
 
+  if not settings.KEEPCONF:
+    dirs.remove_temp_conf_dir()
+
   # write output
   logger.info("Successful: %s" % ','.join(result['successful']))
   if result['failed']:

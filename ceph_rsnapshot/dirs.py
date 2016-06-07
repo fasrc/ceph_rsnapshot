@@ -69,6 +69,7 @@ def setup_qcow_temp_path(pool=''):
 
 # check that temp_path is empty
 # this is used to rotate orphans
+# TODO make this use an empty tempdir
 def make_empty_source():
   temp_path = settings.QCOW_TEMP_PATH
   # get logger we setup earlier
@@ -94,3 +95,14 @@ def setup_dir_per_pool(directory):
   #   dirs.append(pool)
   #   setup_dir(dirs)
   pass
+
+def remove_temp_conf_dir():
+  logger = logs.get_logger()
+  if not settings.KEEPCONF:
+    logger.info("removing temp conf dir %s" % settings.TEMP_CONF_DIR)
+    try:
+      os.rmdir(settings.TEMP_CONF_DIR)
+      # TODO all pools
+      os.rmdir("%s/%s" % (settings.TEMP_CONF_DIR, pool)
+    except Exception as e:
+      logger.warning("unable to remove temp conf dir with error %s" % e)
