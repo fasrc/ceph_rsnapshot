@@ -103,9 +103,11 @@ def rotate_orphans(pool=''):
     logger.info('orphan: %s' % orphan)
     dirs.make_empty_source() # do this every time to be sure it's empty
     # note this uses temp_path on the dest - which we check to be empty
+    # note also create path with . in it so rsync relative works
+    source = "%s/./" % settings.QCOW_TEMP_PATH
     conf_file = write_conf(orphan,
                            pool = pool,
-                           source = settings.QCOW_TEMP_PATH,
+                           source = source,
                            template = template)
     logger.info("rotating orphan %s" % orphan)
     try:
