@@ -286,10 +286,13 @@ def rsnap_pool(pool):
       # done with this image, increment counter
       index = index + 1
 
+  # {'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate}
+  orphan_result = rotate_orphans(pool)
+
   return({'successful': successful,
           'failed': failed,
-          'orphans_rotated': orphans_rotated,
-          'orphans_failed_to_rotate': orphans_failed_to_rotate,
+          'orphans_rotated': orphan_result['orphans_rotated'],
+          'orphans_failed_to_rotate': orphan_result['orphans_failed_to_rotate'],
         })
 
 
