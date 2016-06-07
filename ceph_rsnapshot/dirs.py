@@ -62,7 +62,8 @@ def setup_qcow_temp_path(pool=''):
   logger = logs.get_logger()
   temp_path = settings.QCOW_TEMP_PATH
   if not os.path.isdir(temp_path):
-    os.mkdir("%s/%s" % (temp_path,pool),700)
+    os.makedirs("%s/%s" % (temp_path,pool),700)
+  # FIXME do this for all pools
   if not os.path.isdir("%s/%s" % (temp_path,pool)):
     os.mkdir("%s/%s" % (temp_path,pool),700)
 
@@ -84,7 +85,8 @@ def setup_dir(directory):
   logger = logs.get_logger()
   # make the if it doesn't exist
   if not os.path.isdir(directory):
-    os.mkdir(directory,700)
+    # make dir and preceeding dirs if necessary
+    os.makedirs(directory,700)
 
 def setup_dir_per_pool(directory):
   logger = logs.get_logger()
