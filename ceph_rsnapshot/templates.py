@@ -1,4 +1,5 @@
-
+from ceph_rsnapshot import settings
+import ceph_rsnapshot
 
 def get_template():
   # get logger we setup earlier
@@ -11,6 +12,10 @@ def get_template():
   template = Template(template_string)
   # FIXME raise error if error
   return template
+
+def get_template_jinja():
+  pass
+
 
 def write_conf(image,
                host,
@@ -59,4 +64,6 @@ def remove_conf(image,pool='rbd'):
 
 
 def test_template():
+  settings.load_settings()
+  print(settings.CONF_BASE_PATH)
   print('foo')
