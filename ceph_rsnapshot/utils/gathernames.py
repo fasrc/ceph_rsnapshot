@@ -76,9 +76,9 @@ def gathernames():
       images_without_snaps.append(image)
 
   # FIXME todo wrap these to json
-  logger.warning('these images had no snaps: %s' % ','.join(images_without_snaps)) #to stderr via stream handler above
+  # logger.warning('these images had no snaps: %s' % ','.join(images_without_snaps)) #to stderr via stream handler above
   # print('these images have snaps: \n%s' % '\n'.join(images_with_snaps))
 
   # for now just print
   print('\n'.join(images_with_snaps)) # to stdout
-  logger.info('images: %s' % ','.join(images_with_snaps)) # to stderr via stream handler above
+  # logger.info('images: %s' % ','.join(images_with_snaps)) # to stderr via stream handler above

@@ -45,7 +45,7 @@ def setup_logging():
     sh_logger.addHandler(fileHandler)
 
   # setup console loggers
-  consoleHandler = logging.StreamHandler(stream=sys.stderr)
+  consoleHandler = logging.StreamHandler(stream=sys.stdout)
   consoleHandler.setFormatter(logFormatter)
   logger.addHandler(consoleHandler)
   if sh_logging:
