@@ -2,7 +2,7 @@ from ceph_rsnapshot import settings, logs
 import os, sys, tempfile
 
 
-def setup_backup_dirs(pool,dirs=''):
+def setup_backup_dirs(pool='',dirs=''):
   if not pool:
     pool=settings.POOL
   if not dirs:
@@ -15,7 +15,7 @@ def setup_backup_dirs(pool,dirs=''):
   for directory in dirs:
     setup_dir(directory)
 
-def setup_log_dirs(pool):
+def setup_log_dirs(pool=''):
   if not pool:
     pool=settings.POOL
   dirs = [
@@ -26,7 +26,7 @@ def setup_log_dirs(pool):
   for directory in dirs:
     setup_dir(directory)
 
-def setup_temp_conf_dir(pool):
+def setup_temp_conf_dir(pool=''):
   if not pool:
     pool=settings.POOL
   logger = logs.get_logger()
@@ -54,7 +54,7 @@ def setup_temp_conf_dir(pool):
   return settings.TEMP_CONF_DIR
 
 # make path to export qcows to
-def setup_qcow_temp_path(pool):
+def setup_qcow_temp_path(pool=''):
   if not pool:
     pool=settings.POOL
   logger = logs.get_logger()
