@@ -1,5 +1,5 @@
 from ceph_rsnapshot import settings,logs
-import tempfile, sys
+import tempfile, sys, os
 
 import jinja2
 
@@ -9,7 +9,9 @@ def get_template():
   template = env.get_template('rsnapshot.template')
   return template
 
-def write_conf(image, pool = 'rbd', source='', template=''):
+def write_conf(image, pool = '', source='', template=''):
+  if not pool:
+    pool = settings.POOL
   host = settings.CEPH_HOST
   # temp_path: note the . needed to set where to relative from
   temp_path=settings.QCOW_TEMP_PATH
@@ -23,8 +25,9 @@ def write_conf(image, pool = 'rbd', source='', template=''):
     template = get_template()
 
   # create source path string if an override wasn't passed to us
+  # set the . to get rsync to do relative from there
   if source=='':
-    source = 'root@%s:%s/%s.qcow2' % (settings.CEPH_HOST, settings.QCOW_TEMP_PATH, image)
+    source = 'root@%s:%s/%s/./%s.qcow2' % (settings.CEPH_HOST, settings.QCOW_TEMP_PATH, pool, image)
 
   destination = '%s/%s/%s' % (settings.BACKUP_BASE_PATH, settings.POOL, image)
 
@@ -60,12 +63,11 @@ def remove_conf(image,pool='rbd'):
 
 
 
-def setup_temp_conf_dir():
+def setup_temp_conf_dir(pool):
   logger = logs.get_logger()
   if settings.TEMP_CONF_DIR:
     if os.path.isdir(settings.TEMP_CONF_DIR):
       logger.info('using temp conf dir %s' % settings.TEMP_CONF_DIR)
-      return settings.TEMP_CONF_DIR
     else:
       try:
         os.makedirs(settings.TEMP_CONF_DIR)
@@ -79,10 +81,12 @@ def setup_temp_conf_dir():
       temp_conf_dir = tempfile.mkdtemp(prefix=settings.TEMP_CONF_DIR_PREFIX)
       # store this in global settings
       settings.TEMP_CONF_DIR = temp_conf_dir
-      return temp_conf_dir
     except Exception as e:
       logger.error('cannot create conf temp dir with error %s' % e)
       sys.exit(1)
+  logger.info('creading temp conf subdir for pool %s' % pool)
+  os.mkdir("%s/%s" % (settings.TEMP_CONF_DIR,pool), 0700)
+  return settings.TEMP_CONF_DIR
 
 
 def test_template():

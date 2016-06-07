@@ -9,7 +9,8 @@ import argparse
 import json
 import os, sys, socket, logging
 
-from ceph_rsnapshot.logs import setup_logging()
+from ceph_rsnapshot.logs import setup_logging
+from ceph_rsnapshot import settings
 
 
 # images are one-NN
@@ -61,7 +62,9 @@ def gathernames():
   pool = args.pool
   # print("exporting %s" % image)
 
+  settings.load_settings()
   logger = setup_logging()
+
 
   images_to_check = list_pool(pool)
   images_with_snaps=[]

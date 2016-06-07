@@ -17,21 +17,23 @@ import logging
 # qcow.remove
 
 from ceph_rsnapshot.logs import setup_logging
+from ceph_rsnapshot import logs
 from ceph_rsnapshot.templates import remove_conf, write_conf, get_template
 # FIXME do imports this way not the above
-from ceph_rsnapshot import settings
+from ceph_rsnapshot import settings, templates
 
 
 image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 # note using . in middle to tell rsnap where to base relative
 temp_path = '/tmp/qcows/./'
 
-def get_names_on_source(host, pool):
+def get_names_on_source(pool):
+  host = settings.CEPH_HOST
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   # FIXME validate pool name no spaces?
   try:
-    names_on_source_result = sh.ssh(host,'source venv/bin/activate; ./gathernames.py "%s"' % pool)
+    names_on_source_result = sh.ssh(host,'source venv_ceph_rsnapshot/bin/activate; gathernames "%s"' % pool)
     logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
   except Exception as e:
     logger.error(e)
@@ -58,17 +60,19 @@ def get_names_on_dest(pool='rbd',backup_base_path='/backups/vms'):
   return names_on_dest
 
 # FIXME use same list of names on source
-def get_orphans_on_dest(host, pool='rbd',backup_base_path='/backups/vms'):
+def get_orphans_on_dest(pool='rbd',backup_base_path='/backups/vms'):
+  host = settings.CEPH_HOST
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   backup_path = "%s/%s" % (backup_base_path, pool)
-  names_on_dest = get_names_on_dest(pool,backup_base_path)
-  names_on_source = get_names_on_source(host=host,pool=pool)
+  names_on_dest = get_names_on_dest(pool=pool,backup_base_path=backup_base_path)
+  names_on_source = get_names_on_source(pool=pool)
   orphans_on_dest = list(set(names_on_dest) - set(names_on_source))
   return orphans_on_dest
 
 # check that temp_path is empty
 def make_empty_source():
+  temp_path = settings.QCOW_TEMP_PATH
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   try:
@@ -79,25 +83,31 @@ def make_empty_source():
     os.mkdir(temp_path,0700)
 
 
-def rotate_orphans(pool='rbd',backup_base_path = '/backups/vms', conf_base_path = '/etc/rsnapshot/vms'):
+def rotate_orphans(pool=''):
+  if not pool:
+    pool = settings.POOL
+  backup_base_path = settings.BACKUP_BASE_PATH
+
   # now check for ophans on dest
   backup_path = "%s/%s" % (backup_base_path, pool)
-  orphans_on_dest = get_orphans_on_dest(pool, backup_path)
+  orphans_on_dest = get_orphans_on_dest(pool=pool, backup_path=backup_path)
 
   orphans_rotated = []
   orphans_failed_to_rotate = []
+
+  template = get_template()
 
   for orphan in orphans_on_dest:
     logger.info('orphan: %s' % orphan)
     make_empty_source() #FIXME do this only once
     # note this uses temp_path on the dest - which we check to be empty
     conf_file = write_conf(orphan,
-                           source = temp_path,
-                           conf_base_path = conf_base_path,
-                           backup_base_path = backup_base_path)
+                           pool = pool,
+                           source = settings.QCOW_TEMP_PATH,
+                           template = template)
     logger.info("rotating orphan %s" % orphan)
     try:
-      rsnap_result = rsnapshot('-c','%s/%s.conf' % (conf_base_path, orphan),'daily')
+      rsnap_result = rsnapshot('-c','%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, orphan),settings.RETAIN_INTERVAL)
       # if ssuccessful, log
       orphans_rotated.append(orphan)
     except Exception as e:
@@ -108,13 +118,18 @@ def rotate_orphans(pool='rbd',backup_base_path = '/backups/vms', conf_base_path 
     remove_conf(orphan,pool)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
-def export_qcow(image,host,pool='rbd'):
+def export_qcow(image,pool=''):
+  if not pool:
+    pool = settings.POOL
+  cephuser = settings.CEPH_USER
+  cephcluster = settings.CEPH_CLUSTER
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   logger.info("exporting %s" % image)
   try:
     # TODO add a dry-run option
-    export_result = ssh(host,'source venv/bin/activate; ./export_qcow.py %s' % image)
+    logger.info("ceph host %s" % settings.CEPH_HOST)
+    export_result = ssh(settings.CEPH_HOST,'source venv_ceph_rsnapshot/bin/activate; export_qcow %s --pool %s --cephuser %s --cephcluster %s' % (image, pool, cephuser, cephcluster))
     export_qcow_ok = True
     logger.info("stdout from source node:\n"+export_result.stdout.strip("\n"))
   except Exception as e:
@@ -124,13 +139,17 @@ def export_qcow(image,host,pool='rbd'):
     logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
   return export_qcow_ok
 
-def rsnap_image_sh(image,host,pool='rbd',conf_base_path='/etc/rsnapshot/vms'):
+def rsnap_image_sh(image,pool=''):
+  if not pool:
+    pool = settings.POOL
+
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   logger.info("rsnapping %s" % image)
   try:
+    rsnap_conf_file = '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
     ts=time.time()
-    rsnap_result = rsnapshot('-c','%s/%s.conf' % (conf_base_path, image),'daily')
+    rsnap_result = rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
     tf=time.time()
     elapsed_time = tf-ts
     elapsed_time_ms = elapsed_time * 10**3
@@ -146,14 +165,19 @@ def rsnap_image_sh(image,host,pool='rbd',conf_base_path='/etc/rsnapshot/vms'):
     rsnap_ok = False
   return rsnap_ok
 
-def remove_qcow(image,host,pool='rbd'):
+def remove_qcow(image,pool=''):
+  if not pool:
+    pool = settings.POOL
+
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
+  logger.info('going to remove temp qcow for image %s pool %s' % (image, pool))
   try:
-    remove_result = ssh(host,'source venv/bin/activate; ./remove_qcow.py %s' % image)
+    remove_result = ssh(settings.CEPH_HOST,'source venv_ceph_rsnapshot/bin/activate; remove_qcow %s --pool %s' % (image, pool))
     remove_qcow_ok = True
     logger.info("stdout from source node:\n"+remove_result.stdout.strip("\n"))
   except Exception as e:
+    logger.error(e)
     logger.error("failed to remove qcow %s with code %s" % (image, e.exit_code))
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
     logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
@@ -315,8 +339,11 @@ def ceph_rsnapshot():
   logger = setup_logging()
   logger.debug("launched with cli args: " + " ".join(sys.argv))
 
+  templates.setup_temp_conf_dir(pool)
+
   # TODO wrap pools here
   # for pool in POOLS:
+  #   settings.POOL=pool
   result = rsnap_pool(pool)
 
   # write output

@@ -19,6 +19,8 @@ def setup_logging():
     log_level = logging.DEBUG
   if not os.path.isdir(log_location):
     os.makedirs(log_location)
+  if not os.path.isdir("%s/rsnap" % log_location):
+    os.makedirs("%s/rsnap" % log_location)
   log_file = "%s/%s.log" % (log_location, log_filename)
   # logging.basicConfig(filename=log_file, level=log_level)
 

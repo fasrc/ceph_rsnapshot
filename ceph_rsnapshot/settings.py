@@ -10,11 +10,12 @@ DEFAULT_CONFIG = 'ceph_rsnapshot.yaml'
 
 SETTINGS = dict(
   CEPH_HOST='localhost',
+  CEPH_USER='admin',
+  CEPH_CLUSTER='ceph',
   # TODO allow an array here
   POOL='rbd',
   # path for the temporary export of qcows
-  # note the . is needed for rsync to set relative
-  QCOW_TEMP_PATH='/tmp/qcows/./',
+  QCOW_TEMP_PATH='/tmp/qcows/',
   EXTRA_ARGS='',
   # prefix for temp dir to store temporary rsnapshot conf files
   TEMP_CONF_DIR_PREFIX='ceph_rsnapshot_temp_conf_',

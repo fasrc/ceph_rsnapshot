@@ -5,28 +5,29 @@ import os, sys, socket, logging
 import sh
 import argparse
 
-from ceph_rsnapshot.logs import setup_logging()
-
-temp_path = '/tmp/qcows'
+from ceph_rsnapshot import logs
+from ceph_rsnapshot import settings
 
 def remove_qcow():
   parser = argparse.ArgumentParser(description='deletes a temporary qcow')
   parser.add_argument('image')
+  parser.add_argument('--pool', default='rbd')
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
   #                     const=sum, default=max,
   #                     help='sum the integers (default: find the max)')
   args = parser.parse_args()
   image = args.image
+  pool = args.pool
 
-  # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
+  settings.load_settings()
+  settings.POOL = pool
 
-  logger = setup_logging()
+  logger = logs.setup_logging()
 
-  logger.info("deleting temp qcow for %s" % image)
+  logger.info("deleting temp qcow for image %s from pool %s " % (image, pool))
 
   try:
-    os.remove("%s/%s.qcow2" % (temp_path, image))
+    os.remove("%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH, pool, image))
   except Exception as e:
     logger.error(e.stdout)
     logger.error(e.stderr)
