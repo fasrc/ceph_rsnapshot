@@ -27,6 +27,8 @@ def setup_temp_path():
     os.mkdir(temp_path,0700)
 
 def get_freespace(path):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   statvfs = os.statvfs(path)
   avail_bytes = statvfs.f_frsize * statvfs.f_bavail
   return avail_bytes
@@ -46,6 +48,8 @@ def get_today():
   return sh.date('--iso').strip('\n')
 
 def export_qcow_sh(image,pool,cephuser,cluster,snap='',path=temp_path):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   if snap == '':
     snap = get_today()
   # use this because it has a dash in the command name

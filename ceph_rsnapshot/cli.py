@@ -23,6 +23,8 @@ image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 temp_path = '/tmp/qcows/./'
 
 def get_names_on_source(host, pool):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   # FIXME validate pool name no spaces?
   try:
     names_on_source_result = sh.ssh(host,'source venv/bin/activate; ./gathernames.py "%s"' % pool)
@@ -38,6 +40,8 @@ def get_names_on_source(host, pool):
   return names_on_source
 
 def get_template():
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   # get path to this from setuptools
   f=open('rsnapshot.template','r')
   # FIXME raise error if error
@@ -56,6 +60,8 @@ def write_conf(image,
                conf_base_path='/etc/rsnapshot/vms',
                extra_args='',
                template = None):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   # only reopen template if we don't have it - ie, are we part of a pool run
   if not template:
     template = get_template()
@@ -83,10 +89,14 @@ def write_conf(image,
 
 
 def remove_conf(image,pool='rbd'):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   os.remove('/etc/rsnapshot/vms/%s.conf' % image)
   # FIXME raise error if error
 
 def get_names_on_dest(pool='rbd',backup_base_path='/backups/vms'):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   backup_path = "%s/%s" % (backup_base_path, pool)
   try:
     names_on_dest = os.listdir(backup_path)
@@ -98,6 +108,8 @@ def get_names_on_dest(pool='rbd',backup_base_path='/backups/vms'):
 
 # FIXME use same list of names on source
 def get_orphans_on_dest(host, pool='rbd',backup_base_path='/backups/vms'):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   backup_path = "%s/%s" % (backup_base_path, pool)
   names_on_dest = get_names_on_dest(pool,backup_base_path)
   names_on_source = get_names_on_source(host=host,pool=pool)
@@ -106,6 +118,8 @@ def get_orphans_on_dest(host, pool='rbd',backup_base_path='/backups/vms'):
 
 # check that temp_path is empty
 def make_empty_source():
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   try:
     dirlist = os.listdir(temp_path)
     if len(dirlist) != 0:
@@ -144,6 +158,8 @@ def rotate_orphans(pool='rbd',backup_base_path = '/backups/vms', conf_base_path 
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
 def export_qcow(image,host,pool='rbd'):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   logger.info("exporting %s" % image)
   try:
     # TODO add a dry-run option
@@ -158,6 +174,8 @@ def export_qcow(image,host,pool='rbd'):
   return export_qcow_ok
 
 def rsnap_image_sh(image,host,pool='rbd',conf_base_path='/etc/rsnapshot/vms'):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   logger.info("rsnapping %s" % image)
   try:
     ts=time.time()
@@ -178,6 +196,8 @@ def rsnap_image_sh(image,host,pool='rbd',conf_base_path='/etc/rsnapshot/vms'):
   return rsnap_ok
 
 def remove_qcow(image,host,pool='rbd'):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   try:
     remove_result = ssh(host,'source venv/bin/activate; ./remove_qcow.py %s' % image)
     remove_qcow_ok = True
@@ -199,6 +219,8 @@ def rsnap_image(image,
                 conf_base_path = '/etc/rsnapshot/vms',
                 backup_base_path = '/backups/vms',
                 keepconf = False):
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   logger.info('working on image %s' % image)
   # setup flags
   export_qcow_ok = False
@@ -264,6 +286,8 @@ def rsnap_pool(host,
                keepconf = False):
 
   # start run
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
   logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (settings.POOL, backup_base_path, pool))
 
   # get list of images from source

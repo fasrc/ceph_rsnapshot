@@ -6,7 +6,7 @@ sh_logging = False
 
 
 def setup_logging(log_filename, log_location='/var/log/ceph-rsnapshot/', verbose=False):
-  logger = logging.getLogger(__name__)
+  logger = logging.getLogger('ceph_rsnapshot')
   # get logger for sh module so we can configure it as well
   sh_logger = logging.getLogger('sh.command')
 

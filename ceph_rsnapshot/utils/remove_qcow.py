@@ -18,6 +18,9 @@ def remove_qcow():
   args = parser.parse_args()
   image = args.image
 
+  # get logger we setup earlier
+  logger = logging.getLogger('ceph_rsnapshot')
+
   logger = setup_logging(log_filename='remove_qcow')
 
   logger.info("deleting temp qcow for %s" % image)
