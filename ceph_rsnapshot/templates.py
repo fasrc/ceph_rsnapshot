@@ -1,4 +1,4 @@
-from ceph_rsnapshot import settings,logs
+from ceph_rsnapshot import settings,logs,dirs
 import tempfile, sys, os
 
 import jinja2
@@ -63,37 +63,11 @@ def remove_conf(image,pool='rbd'):
 
 
 
-def setup_temp_conf_dir(pool):
-  logger = logs.get_logger()
-  if settings.TEMP_CONF_DIR:
-    if os.path.isdir(settings.TEMP_CONF_DIR):
-      logger.info('using temp conf dir %s' % settings.TEMP_CONF_DIR)
-    else:
-      try:
-        os.makedirs(settings.TEMP_CONF_DIR)
-        logger.info('created temp dir at %s' % settings.TEMP_CONF_DIR)
-      except Exception as e:
-        logger.error('Cannot create conf temp dir (or intermediate dirs) from'+
-        ' setting %s with error %s' % (settings.TEMP_CONF_DIR, e))
-        sys.exit(1)
-  else:
-    try:
-      temp_conf_dir = tempfile.mkdtemp(prefix=settings.TEMP_CONF_DIR_PREFIX)
-      # store this in global settings
-      settings.TEMP_CONF_DIR = temp_conf_dir
-    except Exception as e:
-      logger.error('cannot create conf temp dir with error %s' % e)
-      sys.exit(1)
-  logger.info('creading temp conf subdir for pool %s' % pool)
-  os.mkdir("%s/%s" % (settings.TEMP_CONF_DIR,pool), 0700)
-  return settings.TEMP_CONF_DIR
-
-
 def test_template():
   settings.load_settings()
   settings.LOG_BASE_PATH='/tmp/ceph_rsnapshot_logs'
   logger=logs.setup_logging()
-  temp_conf_dir = setup_temp_conf_dir()
+  temp_conf_dir = dirs.setup_temp_conf_dir()
   logger.info('temp conf dir is %s' % temp_conf_dir)
   print(settings.TEMP_CONF_DIR)
 

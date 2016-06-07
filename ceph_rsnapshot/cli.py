@@ -330,7 +330,7 @@ def ceph_rsnapshot():
   logger.debug("launched with cli args: " + " ".join(sys.argv))
 
   # TODO move this to dirs
-  templates.setup_temp_conf_dir(pool)
+  dirs.setup_temp_conf_dir(pool)
   dirs.setup_backup_dirs()
   dirs.setup_log_dirs()
 

@@ -15,16 +15,10 @@ import json
 import time
 
 from ceph_rsnapshot.logs import setup_logging
-from ceph_rsnapshot import logs
+from ceph_rsnapshot import logs, dirs
 from ceph_rsnapshot import settings
 
-def setup_temp_path(pool):
-  logger = logs.get_logger()
-  temp_path = settings.QCOW_TEMP_PATH
-  if not os.path.isdir(temp_path):
-    os.mkdir("%s/%s" % (temp_path,pool),0700)
-  if not os.path.isdir("%s/%s" % (temp_path,pool)):
-    os.mkdir("%s/%s" % (temp_path,pool),0700)
+
 
 def get_freespace(path):
   # get logger we setup earlier
@@ -95,7 +89,7 @@ def export_qcow():
   logger.info("exporting image %s from pool %s..." % (image,pool))
 
   # setup tmp path and check free space
-  setup_temp_path(pool)
+  dirs.setup_qcow_temp_path(pool)
   avail_bytes = get_freespace(settings.QCOW_TEMP_PATH)
 
   # check free space for this image snap
