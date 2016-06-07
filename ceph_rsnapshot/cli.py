@@ -28,6 +28,7 @@ image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 temp_path = '/tmp/qcows/./'
 
 def get_names_on_source(pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
   host = settings.CEPH_HOST
@@ -50,6 +51,7 @@ def get_names_on_source(pool=''):
 
 
 def get_names_on_dest(pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
   backup_base_path=settings.BACKUP_BASE_PATH
@@ -83,6 +85,7 @@ def get_orphans_on_dest(pool=''):
 
 
 def rotate_orphans(pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
   backup_base_path = settings.BACKUP_BASE_PATH
@@ -118,12 +121,12 @@ def rotate_orphans(pool=''):
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
 def export_qcow(image,pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
   cephuser = settings.CEPH_USER
   cephcluster = settings.CEPH_CLUSTER
   # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
   logger.info("exporting %s" % image)
   try:
     # TODO add a dry-run option
@@ -139,11 +142,9 @@ def export_qcow(image,pool=''):
   return export_qcow_ok
 
 def rsnap_image_sh(image,pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
-
-  # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
   logger.info("rsnapping %s" % image)
   try:
     rsnap_conf_file = '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
@@ -165,11 +166,9 @@ def rsnap_image_sh(image,pool=''):
   return rsnap_ok
 
 def remove_qcow(image,pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
-
-  # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
   logger.info('going to remove temp qcow for image %s pool %s' % (image, pool))
   try:
     remove_result = ssh(settings.CEPH_HOST,'source venv_ceph_rsnapshot/bin/activate; remove_qcow %s --pool %s' % (image, pool))
@@ -247,7 +246,7 @@ def rsnap_pool(pool):
   host = settings.CEPH_HOST
 
   # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
+  logger = logs.get_logger()
   logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (pool, settings.BACKUP_BASE_PATH, pool))
 
   # get list of images from source
