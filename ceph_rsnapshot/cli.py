@@ -73,7 +73,7 @@ def get_orphans_on_dest(pool=''):
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   backup_path = "%s/%s" % (backup_base_path, pool)
-  names_on_dest = get_names_on_dest(pool=pool,backup_base_path=backup_base_path)
+  names_on_dest = get_names_on_dest(pool=pool)
   names_on_source = get_names_on_source(pool=pool)
   orphans_on_dest = list(set(names_on_dest) - set(names_on_source))
   return orphans_on_dest
