@@ -58,7 +58,7 @@ def write_conf(image, pool = '', source='', template=''):
 def remove_conf(image,pool='rbd'):
   # get logger we setup earlier
   logger = logs.get_logger()
-  os.remove('%s/%s.conf' % (settings.TEMP_CONF_DIR, image))
+  os.remove('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
   # FIXME raise error if error
 
 

@@ -117,7 +117,9 @@ def rotate_orphans(pool=''):
       logger.error("failed to rotate orphan %s with code %s" % (orphan, e.exit_code))
       logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
       logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
-    remove_conf(orphan,pool)
+    # unless flag to keep it for debug
+    if not keepconf:
+      remove_conf(orphan,pool)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
 def export_qcow(image,pool=''):
