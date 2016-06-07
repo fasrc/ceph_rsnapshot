@@ -3,6 +3,7 @@ import os, sys, tempfile
 
 
 def setup_backup_dirs(pool='',dirs=''):
+  logger = logs.get_logger()
   if not pool:
     pool=settings.POOL
   if not dirs:
@@ -16,6 +17,7 @@ def setup_backup_dirs(pool='',dirs=''):
     setup_dir(directory)
 
 def setup_log_dirs(pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool=settings.POOL
   dirs = [
@@ -69,7 +71,7 @@ def setup_qcow_temp_path(pool=''):
 def make_empty_source():
   temp_path = settings.QCOW_TEMP_PATH
   # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
+  logger = logs.get_logger()
   try:
     dirlist = os.listdir(temp_path)
     if len(dirlist) != 0:
@@ -79,11 +81,13 @@ def make_empty_source():
     # TODO catch if error
 
 def setup_dir(directory):
+  logger = logs.get_logger()
   # make the if it doesn't exist
   if not os.path.isdir(directory):
     os.mkdir(directory,700)
 
 def setup_dir_per_pool(directory):
+  logger = logs.get_logger()
   # for pool in settings.POOLS
   #   dirs.append(pool)
   #   setup_dir(dirs)
