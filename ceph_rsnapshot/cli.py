@@ -66,6 +66,7 @@ def get_names_on_dest(pool=''):
 
 # FIXME use same list of names on source
 def get_orphans_on_dest(pool=''):
+  logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
   backup_base_path = settings.BACKUP_BASE_PATH
