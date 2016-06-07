@@ -160,19 +160,18 @@ def remove_qcow(image,host,pool='rbd'):
     remove_qcow_ok = False
   return remove_qcow_ok
 
-def rsnap_image(image,
-                host,
-                pool = 'rbd',
-                # temp_path: note the . needed to set where to relative from
-                temp_path='/tmp/qcows/./',
-                extra_args='',
-                template = None,
-                conf_base_path = '/etc/rsnapshot/vms',
-                backup_base_path = '/backups/vms',
-                keepconf = False):
+def rsnap_image(image, pool = 'rbd', template = None):
+  # temp_path: note the . needed to set where to relative from
+  temp_path=settings.QCOW_TEMP_PATH
+  extra_args=settings.EXTRA_ARGS
+
+  conf_base_path = settings.TEMP_CONF_DIR
+  backup_base_path = settings.BACKUP_BASE_PATH
+  keepconf = settings.KEEPCONF
+
   # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
-  logger.info('working on image %s' % image)
+  logger = logs.get_logger()
+  logger.info('working on image %s in pool %s' % (image, pool))
   # setup flags
   export_qcow_ok = False
   rsnap_ok = False
@@ -183,27 +182,27 @@ def rsnap_image(image,
     template = get_template()
 
   # create the temp conf file
-  conf_file = write_conf(image, template = template)
+  conf_file = write_conf(image, pool = pool, template = template)
   logger.info(conf_file)
 
   # ssh to source and export temp qcow of this image
-  export_qcow_ok = export_qcow(image, host=host)
+  export_qcow_ok = export_qcow(image, pool = pool)
 
   # if exported ok, then rsnap this image
   if export_qcow_ok:
-    rsnap_ok = rsnap_image_sh(image, host=host)
+    rsnap_ok = rsnap_image_sh(image, pool = pool)
   else:
     logger.error("skipping rsnap of image %s because export to qcow failed" % image)
 
   # either way remove the temp qcow
-  logger.info("removing %s" % image)
-  remove_qcow_ok = remove_qcow(image, host=host)
+  logger.info("removing temp qcow for %s" % image)
+  remove_qcow_ok = remove_qcow(image, pool= pool)
   # TODO catch error if its already gone and move forward
 
   # either way remove the temp conf file
   # unless flag to keep it for debug
   if not keepconf:
-    remove_conf(image)
+    remove_conf(image, pool = pool)
 
   if export_qcow_ok and rsnap_ok and remove_qcow_ok:
     successful = True
@@ -220,33 +219,26 @@ def rsnap_image(image,
                    }
          })
 
-def rsnap_pool(host,
-               pool,
-               # temp_path: note the . needed to set where to relative from
-               temp_path='/tmp/qcows/./', 
-               extra_args='',
-               template = None,
-               conf_base_path = '/etc/rsnapshot/vms',
-               backup_base_path = '/backups/vms',
-               keepconf = False):
+def rsnap_pool(pool):
+  # get values from settings
+  host = settings.CEPH_HOST
 
-  # start run
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
-  # logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (settings.POOL, backup_base_path, pool))
-  logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (pool, backup_base_path, pool))
+  logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (pool, settings.BACKUP_BASE_PATH, pool))
 
   # get list of images from source
-  names_on_source = get_names_on_source(host=host,pool=pool)
+  names_on_source = get_names_on_source(pool=pool)
   # TODO handle errors here
   logger.info("names on source: %s" % ",".join(names_on_source))
 
   # get list of images on backup dest already
-  names_on_dest_result=get_names_on_dest(pool = pool, backup_base_path = backup_base_path)
+  names_on_dest_result=get_names_on_dest(pool = pool)
   logger.info("names on dest: %s" % ",".join(names_on_dest_result))
 
   # calculate difference
-  orphans_on_dest = get_orphans_on_dest(host = host, pool = pool, backup_base_path = backup_base_path)
+  # FIXME use the above lists
+  orphans_on_dest = get_orphans_on_dest(pool = pool)
   if orphans_on_dest:
     logger.info("orphans on dest: %s" % ",".join(orphans_on_dest))
 
@@ -267,16 +259,7 @@ def rsnap_pool(host,
     for image in names_on_source:
       logger.info('working on name %s of %s in pool %s: %s' % (index, len_names, pool, image))
 
-      result = rsnap_image(image,
-                host = host,
-                pool = pool,
-                # temp_path: note the . needed to set where to relative from
-                temp_path = temp_path,
-                extra_args = extra_args,
-                template = template,
-                conf_base_path = conf_base_path,
-                backup_base_path = backup_base_path,
-                keepconf = keepconf)
+      result = rsnap_image(image, pool = pool, template = template)
 
       if result['successful']:
         logger.info('successfully done with %s' % image)
@@ -288,7 +271,6 @@ def rsnap_pool(host,
         failed[image] = result
       # done with this image, increment counter
       index = index + 1
-
 
   return({'successful': successful,
           'failed': failed,
@@ -333,7 +315,9 @@ def ceph_rsnapshot():
   logger = setup_logging()
   logger.debug("launched with cli args: " + " ".join(sys.argv))
 
-  result = rsnap_pool(host=host,pool=pool,keepconf=keepconf,extra_args = extra_args)
+  # TODO wrap pools here
+  # for pool in POOLS:
+  result = rsnap_pool(pool)
 
   # write output
   logger.info("Successful: %s" % ','.join(result['successful']))

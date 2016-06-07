@@ -9,7 +9,7 @@ def get_template():
   template = env.get_template('rsnapshot.template')
   return template
 
-def write_conf(image, source='', template=''):
+def write_conf(image, pool = 'rbd', source='', template=''):
   host = settings.CEPH_HOST
   # temp_path: note the . needed to set where to relative from
   temp_path=settings.QCOW_TEMP_PATH
@@ -39,7 +39,8 @@ def write_conf(image, source='', template=''):
                                 subdir = '',
                                 extra_args = settings.EXTRA_ARGS)
 
-  conf_file = open('%s/%s.conf' % (settings.TEMP_CONF_DIR, image),'w')
+  # conf file of the form /tmp_conf_dir/pool/imagename.conf
+  conf_file = open('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image),'w')
   # FIXME raise error if error
   conf_file.write(my_template)
   # FIXME raise error if error

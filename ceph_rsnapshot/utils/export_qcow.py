@@ -34,12 +34,12 @@ def get_freespace(path):
   return avail_bytes
 
 # TODO need to sum up sizes of snaps... may just use provisioned size instead
-def get_rbd_size(image,cluster,snap=''):
+def get_rbd_size(image,pool='rbd',cephuser,cluster='ceph',snap=''):
   if snap == '':
     snap = get_today()
-  rbd_image_string = "%s@%s" % (image, snap)
+  rbd_image_string = "%s/%s@%s" % (pool, image, snap)
   # check the size of this image@snap
-  rbd_du_result=rbd.du(rbd_image_string, cluster=cluster, format='json')
+  rbd_du_result=rbd.du(rbd_image_string, user=cephuser, cluster=cluster, format='json')
   rbd_image_used_size = json.loads(rbd_du_result.stdout)['images'][0]['used_size']
   rbd_image_provisioned_size = json.loads(rbd_du_result.stdout)['images'][0]['provisioned_size']
   return rbd_image_provisioned_size
@@ -73,22 +73,28 @@ def export_qcow_sh(image,pool,cephuser,cluster,snap='',path=temp_path):
 def export_qcow():
   parser = argparse.ArgumentParser(description='Export a rbd image to qcow')
   parser.add_argument('image')
+  parser.add_argument('pool', default='rbd')
+  parser.add_argument('cephuser', default='admin')
+  parser.add_argument('cluster', default='ceph')
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
   #                     const=sum, default=max,
   #                     help='sum the integers (default: find the max)')
   args = parser.parse_args()
   image = args.image
+  pool = args.pool
+  cephuser = args.cephuser
+  cluster = args.cluster
 
   logger = setup_logging()
 
-  logger.info("exporting %s..." % image)
+  logger.info("exporting image %s from pool %s..." % (image,pool))
 
   # setup tmp path and check free space
   setup_temp_path()
   avail_bytes = get_freespace(temp_path)
 
   # check free space for this image snap
-  rbd_image_used_size = get_rbd_size(image,cluster='ceph')
+  rbd_image_used_size = get_rbd_size(image,pool=pool,cluster='ceph')
   logger.info("image size %s" % rbd_image_used_size)
   if rbd_image_used_size > ( avail_bytes - min_freespace ):
     raise NameError, "not enough free space to export this qcow"
@@ -96,7 +102,7 @@ def export_qcow():
 
   # export qcow
   try:
-    elapsed_time_ms=export_qcow_sh(image,pool='rbd',cephuser='admin',cluster='ceph')
+    elapsed_time_ms=export_qcow_sh(image,pool=pool,cephuser=cephuser,cluster=cluster)
     logger.info('image %s successfully exported in %sms' % (image, elapsed_time_ms))
   except Exception as e:
     logger.error(e)
