@@ -118,7 +118,7 @@ def rotate_orphans(pool=''):
       logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
       logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     # unless flag to keep it for debug
-    if not keepconf:
+    if not settings.KEEPCONF:
       remove_conf(orphan,pool)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
@@ -191,7 +191,6 @@ def rsnap_image(image, pool = 'rbd', template = None):
 
   conf_base_path = settings.TEMP_CONF_DIR
   backup_base_path = settings.BACKUP_BASE_PATH
-  keepconf = settings.KEEPCONF
 
   # get logger we setup earlier
   logger = logs.get_logger()
@@ -225,7 +224,7 @@ def rsnap_image(image, pool = 'rbd', template = None):
 
   # either way remove the temp conf file
   # unless flag to keep it for debug
-  if not keepconf:
+  if not settings.KEEPCONF:
     remove_conf(image, pool = pool)
 
   if export_qcow_ok and rsnap_ok and remove_qcow_ok:
