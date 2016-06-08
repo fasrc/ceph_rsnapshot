@@ -312,38 +312,48 @@ def rsnap_pool(pool):
 # enty for the rsnap node
 def ceph_rsnapshot():
 # if __name__=='__main__':
-  parser = argparse.ArgumentParser(description='wrapper script to backup a ceph pool of rbd images to qcow')
-  parser.add_argument("--host", required=True, help="ceph node to backup from")
-  parser.add_argument('-p', '--pool', help='ceph pool to back up', required=False, default='rbd')
-  parser.add_argument("-v", "--verbose", action='store_true',required=False, default=False,help="verbose logging output")
-  parser.add_argument("-k", "--keepconf", action='store_true',required=False, default=False,help="keep conf files after run")
-  parser.add_argument("-e", "--extralongargs", required=False, default='',help="extra long args for rsync of format foo,bar for arg --foo --bar")
+  parser = argparse.ArgumentParser(description='wrapper script to backup a ceph pool of rbd images to qcow',
+                                   argument_default=argparse.SUPPRESS)
+  parser.add_argument("-c", "--config", required=False, help="path to alternate config file")
+  parser.add_argument("--host", required=False, help="ceph node to backup from")
+  parser.add_argument('-p', '--pool', help='ceph pool to back up', required=False)
+  parser.add_argument("-v", "--verbose", action='store_true',required=False, help="verbose logging output")
+  parser.add_argument("-k", "--keepconf", action='store_true',required=False, help="keep conf files after run")
+  parser.add_argument("-e", "--extralongargs", required=False, help="extra long args for rsync of format foo,bar for arg --foo --bar")
   # parser.add_argument('image_filter', help='regex to select rbd images to back up') # FIXME use this param not image_re  also FIXME pass this to gathernames? (need to shell escape it...)  have gathernames not do any filtering, so filter in this script, and then on the export qcow check if it has a snap
   args = parser.parse_args()
-  host = args.host
-  pool = args.pool
-  verbose = args.verbose
-  keepconf = args.keepconf
-  extra_args = ''
-  if args.extralongargs:
-    extra_args = ' '.join(['--'+x for x in args.extralongargs.split(',')])
+
+  logger = setup_logging()
+  logger.info("launched with cli args: " + " ".join(sys.argv))
+
+  # if we got passed an alt config file path, use that
+  if args.__contains__('config'):
+    config_file = args.config
+    settings.load_settings(config_file)
+  else:
+    settings.load_settings()
+
+  # override global settings with cli args
+  # TODO get this working this way
+  # for key in args.__dict__.keys():
+  #   etc
+  if args.__contains__('host'):
+    settings.CEPH_HOST = args.host
+  if args.__contains__('pool'):
+    settings.POOL = args.pool
+  if args.__contains__('verbose'):
+    settings.VERBOSE = args.verbose
+  if args.__contains__('keepconf')
+    settings.KEEPCONF = args.keepconf
+  if args.__contains__('extralongargs'):
+    settings.EXTRA_ARGS = ' '.join(['--'+x for x in args.extralongargs.split(',')])
     # FIXME not working correctly
   # image_filter = args.image_filter
 
-  # FIXME override settings from cli args
-  settings.load_settings()
+  # get local variables we need from settings we just set
+  pool = settings.POOL
 
-  # override global settings with cli args
-  settings.CEPH_HOST = host
-  settings.POOL = pool
-  settings.VERBOSE = verbose
-  settings.EXTRA_ARGS = extra_args
-  settings.KEEPCONF = keepconf
-
-  logger = setup_logging()
-  logger.debug("launched with cli args: " + " ".join(sys.argv))
-
-  # TODO move this to dirs
+  # setup directories
   dirs.setup_temp_conf_dir(pool)
   dirs.setup_backup_dirs()
   dirs.setup_log_dirs()
@@ -351,6 +361,7 @@ def ceph_rsnapshot():
   # TODO wrap pools here
   # for pool in POOLS:
   #   settings.POOL=pool
+
   result = rsnap_pool(pool)
 
   if not settings.KEEPCONF:
