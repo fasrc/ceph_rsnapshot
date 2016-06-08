@@ -5,11 +5,11 @@ import tempfile
 
 import yaml, logging
 
+# first one found in this list is the one used
 DEFAULT_CONFIG_HIERARCHY = [
   'ceph_rsnapshot.yaml',
   '/etc/ceph_rsnapshot/ceph_rsnapshot.yaml',
 ]
-
 
 
 SETTINGS = dict(
