@@ -19,7 +19,6 @@ from ceph_rsnapshot import logs, dirs
 from ceph_rsnapshot import settings
 
 
-
 def get_freespace(path):
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
@@ -39,6 +38,7 @@ def get_rbd_size(image,pool='rbd',cephuser='admin',cephcluster='ceph',snap=''):
   return rbd_image_provisioned_size
 
 def get_today():
+  # TODO use settings.IMAGE_RE
   return sh.date('--iso').strip('\n')
 
 def export_qcow_sh(image,pool,cephuser,cephcluster,snap=''):

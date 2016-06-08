@@ -44,6 +44,7 @@ def get_names_on_source(pool=''):
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
     logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     # FIXME raise error to main loop
+    raise NameError('e')
   names_on_source = names_on_source_result.strip("\n").split("\n")
 
   return names_on_source
