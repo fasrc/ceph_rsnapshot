@@ -323,15 +323,15 @@ def ceph_rsnapshot():
   # parser.add_argument('image_filter', help='regex to select rbd images to back up') # FIXME use this param not image_re  also FIXME pass this to gathernames? (need to shell escape it...)  have gathernames not do any filtering, so filter in this script, and then on the export qcow check if it has a snap
   args = parser.parse_args()
 
-  logger = setup_logging()
-  logger.info("launched with cli args: " + " ".join(sys.argv))
-
   # if we got passed an alt config file path, use that
   if args.__contains__('config'):
     config_file = args.config
     settings.load_settings(config_file)
   else:
     settings.load_settings()
+
+  logger = setup_logging()
+  logger.info("launched with cli args: " + " ".join(sys.argv))
 
   # override global settings with cli args
   # TODO get this working this way
