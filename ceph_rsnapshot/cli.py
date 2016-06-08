@@ -343,7 +343,7 @@ def ceph_rsnapshot():
     settings.POOL = args.pool
   if args.__contains__('verbose'):
     settings.VERBOSE = args.verbose
-  if args.__contains__('keepconf')
+  if args.__contains__('keepconf'):
     settings.KEEPCONF = args.keepconf
   if args.__contains__('extralongargs'):
     settings.EXTRA_ARGS = ' '.join(['--'+x for x in args.extralongargs.split(',')])
