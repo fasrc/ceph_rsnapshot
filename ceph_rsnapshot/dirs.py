@@ -52,7 +52,7 @@ def setup_temp_conf_dir(pool=''):
       logger.error('cannot create conf temp dir with error %s' % e)
       sys.exit(1)
   logger.info('creating temp conf subdir for pool %s' % pool)
-  os.mkdir("%s/%s" % (settings.TEMP_CONF_DIR,pool), 700)
+  os.mkdir("%s/%s" % (settings.TEMP_CONF_DIR,pool), 0700)
   return settings.TEMP_CONF_DIR
 
 # make path to export qcows to
@@ -62,10 +62,10 @@ def setup_qcow_temp_path(pool=''):
   logger = logs.get_logger()
   temp_path = settings.QCOW_TEMP_PATH
   if not os.path.isdir(temp_path):
-    os.makedirs("%s/%s" % (temp_path,pool),700)
+    os.makedirs("%s/%s" % (temp_path,pool),0700)
   # FIXME do this for all pools
   if not os.path.isdir("%s/%s" % (temp_path,pool)):
-    os.mkdir("%s/%s" % (temp_path,pool),700)
+    os.mkdir("%s/%s" % (temp_path,pool),0700)
 
 # check that temp_path is empty
 # this is used to rotate orphans
@@ -79,7 +79,7 @@ def make_empty_source():
     if len(dirlist) != 0:
       raise NameError('temp_path_not_empty')
   except:
-    os.mkdir(temp_path,700)
+    os.mkdir(temp_path,0700)
     # TODO catch if error
 
 def setup_dir(directory):
@@ -87,7 +87,7 @@ def setup_dir(directory):
   # make the if it doesn't exist
   if not os.path.isdir(directory):
     # make dir and preceeding dirs if necessary
-    os.makedirs(directory,700)
+    os.makedirs(directory,0700)
 
 def setup_dir_per_pool(directory):
   logger = logs.get_logger()
