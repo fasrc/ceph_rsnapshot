@@ -36,6 +36,7 @@ def get_names_on_source(pool=''):
   logger = logging.getLogger('ceph_rsnapshot')
   # FIXME validate pool name no spaces?
   try:
+    # TODO FIXME add a timeout here or the first connection and error differently if the source is not responding
     names_on_source_result = sh.ssh(host,'source venv_ceph_rsnapshot/bin/activate; gathernames "%s"' % pool)
     logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
   except Exception as e:
@@ -350,6 +351,8 @@ def ceph_rsnapshot():
     settings.EXTRA_ARGS = ' '.join(['--'+x for x in args.extralongargs.split(',')])
     # FIXME not working correctly
   # image_filter = args.image_filter
+
+  # TODO print out settings using
 
   # get local variables we need from settings we just set
   pool = settings.POOL

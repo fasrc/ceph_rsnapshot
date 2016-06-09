@@ -12,6 +12,8 @@ Run wrapper.py from on the backup node ("dest") to backup all ceph rbd images th
 
 This script does not generate the ceph snapshots, those need to be generated externally.
 
+The script requires rsnapshot be installed on the system already (via system packages).
+
 ## Configuration
 
 - image_re - optional filter to select which images to back up
