@@ -89,14 +89,14 @@ def export_qcow():
 
   logger = setup_logging()
 
-  logger.info("exporting image %s from pool %s..." % (image,pool))
+  logger.info("exporting image %s from pool %s..." % (image, settings.POOL))
 
   # setup tmp path and check free space
-  dirs.setup_qcow_temp_path(pool)
+  dirs.setup_qcow_temp_path(settings.POOL)
   avail_bytes = get_freespace(settings.QCOW_TEMP_PATH)
 
   # check free space for this image snap
-  rbd_image_used_size = get_rbd_size(image,pool=pool,cephcluster='ceph')
+  rbd_image_used_size = get_rbd_size(image, pool=settings.POOL, cephcluster=settings.CEPH_CLUSTER)
   logger.info("image size %s" % rbd_image_used_size)
   if rbd_image_used_size > ( avail_bytes - settings.MIN_FREESPACE ):
     raise NameError, "not enough free space to export this qcow"
@@ -104,7 +104,7 @@ def export_qcow():
 
   # export qcow
   try:
-    elapsed_time_ms=export_qcow_sh(image,pool=pool,cephuser=cephuser,cephcluster=cephcluster)
+    elapsed_time_ms=export_qcow_sh(image, pool=settings.POOL, cephuser=settings.CEPHUSER, cephcluster=settings.CEPH_CLUSTER)
     logger.info('image %s successfully exported in %sms' % (image, elapsed_time_ms))
   except Exception as e:
     logger.error('error exporting image %s to qcow with error %s' % (image, e))
