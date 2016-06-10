@@ -124,6 +124,8 @@ def rotate_orphans(pool=''):
     # unless flag to keep it for debug
     if not settings.KEEPCONF:
       remove_conf(orphan,pool)
+
+  # TODO now check for any image dirs that are entirely empty and remove them (and the empty daily.NN inside them)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
 def export_qcow(image,pool=''):
