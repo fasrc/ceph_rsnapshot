@@ -37,7 +37,7 @@ def get_names_on_source(pool=''):
   # FIXME validate pool name no spaces?
   try:
     # TODO FIXME add a timeout here or the first connection and error differently if the source is not responding
-    names_on_source_result = sh.ssh(host,'source venv_ceph_rsnapshot/bin/activate; gathernames "%s"' % pool)
+    names_on_source_result = sh.ssh(host,'source venv_ceph_rsnapshot/bin/activate; gathernames --pool "%s"' % pool)
     logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
   except Exception as e:
     logger.error(e)

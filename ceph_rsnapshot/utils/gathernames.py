@@ -52,7 +52,7 @@ def check_snap(image,pool='',snap=''):
 def gathernames():
   parser = argparse.ArgumentParser(description='Gather a list of rbd images in a given pool with snaps from today',
                                    argument_default=argparse.SUPPRESS)
-  parser.add_argument('pool', required=False, help='ceph pool to get list of rbd images for')
+  parser.add_argument('--pool', required=False, help='ceph pool to get list of rbd images for')
   # parser.add_argument('image')
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
   #                     const=sum, default=max,
