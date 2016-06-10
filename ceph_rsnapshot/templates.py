@@ -34,6 +34,7 @@ def write_conf(image, pool = '', source='', template=''):
   logger.info('writing conf for image %s to rsnap from %s to %s' % (image, source, destination))
 
   my_template = template.render(nickname = image,
+                                pool = pool,
                                 source = source,
                                 destination = destination,
                                 retain_interval = settings.RETAIN_INTERVAL,
@@ -55,7 +56,9 @@ def write_conf(image, pool = '', source='', template=''):
 
 
 
-def remove_conf(image,pool='rbd'):
+def remove_conf(image,pool=''):
+  if not pool:
+    pool = settings.POOL
   # get logger we setup earlier
   logger = logs.get_logger()
   os.remove('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))

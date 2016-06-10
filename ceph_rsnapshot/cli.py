@@ -190,7 +190,9 @@ def remove_qcow(image,pool=''):
     remove_qcow_ok = False
   return remove_qcow_ok
 
-def rsnap_image(image, pool = 'rbd', template = None):
+def rsnap_image(image, pool = '', template = None):
+  if not pool:
+    pool = settings.POOL
   # temp_path: note the . needed to set where to relative from
   temp_path=settings.QCOW_TEMP_PATH
   extra_args=settings.EXTRA_ARGS

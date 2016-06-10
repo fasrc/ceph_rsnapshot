@@ -14,6 +14,7 @@ def setup_backup_dirs(pool='',dirs=''):
   # for pool in settings.POOLS
   #   dirs.append(pool)
   for directory in dirs:
+    logger.info('setting up backup dir: %s' % directory)
     setup_dir(directory)
 
 def setup_log_dirs(pool=''):
@@ -46,6 +47,7 @@ def setup_temp_conf_dir(pool=''):
   else:
     try:
       temp_conf_dir = tempfile.mkdtemp(prefix=settings.TEMP_CONF_DIR_PREFIX)
+      logger.info('creating temp conf dir: %s' % temp_conf_dir)
       # store this in global settings
       settings.TEMP_CONF_DIR = temp_conf_dir
     except Exception as e:

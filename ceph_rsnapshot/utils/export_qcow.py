@@ -58,6 +58,7 @@ def export_qcow_sh(image,pool,cephuser,cephcluster,snap=''):
   qemu_source_string = "rbd:%s/%s@%s:id=%s:conf=/etc/ceph/%s.conf" % (pool, image, snap, cephuser, cephcluster)
   qemu_dest_string = "%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH, pool, image)
   # do the export
+  logger.info('running rbd export with command qemu-img convert %s %s f=raw O=qcow2', (qemu_source_string, qemu_dest_string))
   try:
     ts=time.time()
     export_result = qemuimg.convert(qemu_source_string, qemu_dest_string, f='raw', O='qcow2')
