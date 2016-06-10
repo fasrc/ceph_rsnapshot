@@ -27,8 +27,14 @@ def get_freespace(path):
   return avail_bytes
 
 # TODO need to sum up sizes of snaps... may just use provisioned size instead
-def get_rbd_size(image,pool='rbd',cephuser='admin',cephcluster='ceph',snap=''):
-  if snap == '':
+def get_rbd_size(image,pool='',cephuser='',cephcluster='',snap=''):
+  if not pool:
+    pool = settings.POOL
+  if not cephuser:
+    cephuser = settings.CEPH_USER
+  if not cephcluster:
+    cephcluster = settings.CEPH_CLUSTER
+  if not snap:
     snap = get_today()
   rbd_image_string = "%s/%s@%s" % (pool, image, snap)
   # check the size of this image@snap
