@@ -25,7 +25,7 @@ def list_pool(pool,image_re=''):
   rbd_images_unfiltered = json.loads(rbd_ls_result.stdout)
   logger.info('all images: %s' % ' '.join(rbd_images_unfiltered))
   rbd_images_filtered = [image for image in rbd_images_unfiltered if re.match(image_re,image)]
-  logger.info('images after filtering: %s' % rbd_images_filtered)
+  logger.info('images after filtering by image_re: %s' % ' '.join(rbd_images_filtered))
   return rbd_images_filtered
 
 # FIXME need this on export qcow script too
