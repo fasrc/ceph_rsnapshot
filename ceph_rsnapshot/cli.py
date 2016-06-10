@@ -153,6 +153,7 @@ def rsnap_image_sh(image,pool=''):
   logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
+  # TODO check free space before rsnapping
   logger.info("rsnapping %s" % image)
   try:
     rsnap_conf_file = '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
@@ -326,6 +327,8 @@ def ceph_rsnapshot():
   parser.add_argument("-v", "--verbose", action='store_true',required=False, help="verbose logging output")
   parser.add_argument("-k", "--keepconf", action='store_true',required=False, help="keep conf files after run")
   parser.add_argument("-e", "--extralongargs", required=False, help="extra long args for rsync of format foo,bar for arg --foo --bar")
+  # TODO add a param to show config it would use
+  # to show names on source only
   # parser.add_argument('image_filter', help='regex to select rbd images to back up') # FIXME use this param not image_re  also FIXME pass this to gathernames? (need to shell escape it...)  have gathernames not do any filtering, so filter in this script, and then on the export qcow check if it has a snap
   args = parser.parse_args()
 
