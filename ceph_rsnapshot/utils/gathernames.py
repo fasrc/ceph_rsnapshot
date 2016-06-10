@@ -37,7 +37,9 @@ def get_today():
 
 # checks a image has a snap of given name,
 # or of iso today format if no snap name passed
-def check_snap(image,pool='rbd',snap=''):
+def check_snap(image,pool='',snap=''):
+  if not pool:
+    pool=settings.POOL
   if snap == '':
     snap = get_today()
   # check if today snap exists for this image
