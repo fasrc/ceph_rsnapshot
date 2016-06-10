@@ -104,7 +104,7 @@ def export_qcow():
 
   # export qcow
   try:
-    elapsed_time_ms=export_qcow_sh(image, pool=settings.POOL, cephuser=settings.CEPHUSER, cephcluster=settings.CEPH_CLUSTER)
+    elapsed_time_ms=export_qcow_sh(image, pool=settings.POOL, cephuser=settings.CEPH_USER, cephcluster=settings.CEPH_CLUSTER)
     logger.info('image %s successfully exported in %sms' % (image, elapsed_time_ms))
   except Exception as e:
     logger.error('error exporting image %s to qcow with error %s' % (image, e))
