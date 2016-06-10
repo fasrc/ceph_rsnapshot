@@ -9,11 +9,12 @@ import argparse
 import json
 import os, sys, socket, logging
 
-from ceph_rsnapshot.logs import setup_logging
+from ceph_rsnapshot import logs
 from ceph_rsnapshot import settings
 
 
 def list_pool(pool,image_re=''):
+  logger = logs.get_logger()
   if not image_re:
     image_re = settings.IMAGE_RE
   try:
@@ -35,6 +36,7 @@ def get_today():
 # checks a image has a snap of given name,
 # or of iso today format if no snap name passed
 def check_snap(image,pool='',snap=''):
+  logger = logs.get_logger()
   if not pool:
     pool=settings.POOL
   if not snap:
@@ -64,7 +66,7 @@ def gathernames():
   if args.__contains__('pool'):
     settings.POOL = args.pool
 
-  logger = setup_logging(stdout=False)
+  logger = logs.setup_logging(stdout=False)
 
   logger.info('gathernames starting checking for images in pool %s on cluster %s' %(settings.POOL, settings.CEPH_CLUSTER))
   images_to_check = list_pool(settings.POOL)
