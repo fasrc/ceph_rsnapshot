@@ -65,24 +65,27 @@ def export_qcow_sh(image,pool,cephuser,cephcluster,snap=''):
   return elapsed_time_ms
 
 def export_qcow():
-  parser = argparse.ArgumentParser(description='Export a rbd image to qcow')
+  parser = argparse.ArgumentParser(description='Export a rbd image to qcow',
+                                   argument_default=argparse.SUPPRESS)
   parser.add_argument('image')
-  parser.add_argument('--pool', default='rbd')
-  parser.add_argument('--cephuser', default='admin')
-  parser.add_argument('--cephcluster', default='ceph')
+  parser.add_argument('--pool', required=False)
+  parser.add_argument('--cephuser', required=False)
+  parser.add_argument('--cephcluster', required=False)
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
   #                     const=sum, default=max,
   #                     help='sum the integers (default: find the max)')
   args = parser.parse_args()
+
   image = args.image
-  pool = args.pool
-  cephuser = args.cephuser
-  cephcluster = args.cephcluster
 
   settings.load_settings()
-  settings.POOL = pool
-  settings.CEPH_USER = cephuser
-  settings.CEPH_CLUSTER = cephcluster
+
+  if args.__contains__('pool'):
+    settings.POOL = args.pool
+  if args.__contains__('cephuser'):
+    settings.CEPH_USER = args.cephuser
+  if args.__contains__('cephcluster'):
+    settings.CEPH_CLUSTER = args.cephcluster
 
   logger = setup_logging()
 
