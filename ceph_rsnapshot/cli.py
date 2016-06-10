@@ -37,7 +37,7 @@ def get_names_on_source(pool=''):
   # FIXME validate pool name no spaces?
   try:
     # TODO FIXME add a timeout here or the first connection and error differently if the source is not responding
-    names_on_source_result = sh.ssh(host,'source venv_ceph_rsnapshot/bin/activate; gathernames --pool "%s"' % pool)
+    names_on_source_result = sh.ssh(host,'/home/ceph_rsnapshot/venv/bin/gathernames --pool "%s"' % pool)
     logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
   except Exception as e:
     logger.error(e)
@@ -45,7 +45,7 @@ def get_names_on_source(pool=''):
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
     logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     # FIXME raise error to main loop
-    raise NameError('e')
+    raise NameError(e)
   names_on_source = names_on_source_result.strip("\n").split("\n")
 
   return names_on_source
@@ -137,7 +137,7 @@ def export_qcow(image,pool=''):
   try:
     # TODO add a dry-run option
     logger.info("ceph host %s" % settings.CEPH_HOST)
-    export_result = ssh(settings.CEPH_HOST,'source venv_ceph_rsnapshot/bin/activate; export_qcow %s --pool %s --cephuser %s --cephcluster %s' % (image, pool, cephuser, cephcluster))
+    export_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/export_qcow %s --pool %s --cephuser %s --cephcluster %s' % (image, pool, cephuser, cephcluster))
     export_qcow_ok = True
     logger.info("stdout from source node:\n"+export_result.stdout.strip("\n"))
   except Exception as e:
@@ -177,7 +177,7 @@ def remove_qcow(image,pool=''):
     pool = settings.POOL
   logger.info('going to remove temp qcow for image %s pool %s' % (image, pool))
   try:
-    remove_result = ssh(settings.CEPH_HOST,'source venv_ceph_rsnapshot/bin/activate; remove_qcow %s --pool %s' % (image, pool))
+    remove_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/remove_qcow %s --pool %s' % (image, pool))
     remove_qcow_ok = True
     logger.info("stdout from source node:\n"+remove_result.stdout.strip("\n"))
   except Exception as e:
