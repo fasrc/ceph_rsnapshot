@@ -19,10 +19,10 @@ def remove_qcow():
   args = parser.parse_args()
   image = args.image
 
+  settings.load_settings()
+
   if args.__contains__('pool'):
     settings.POOL = args.pool
-
-  settings.load_settings()
 
   logger = logs.setup_logging()
 
