@@ -56,16 +56,17 @@ def setup_temp_conf_dir(pool=''):
   return settings.TEMP_CONF_DIR
 
 # make path to export qcows to
+# FIXME do this for all pools from the main loop
 def setup_qcow_temp_path(pool=''):
   if not pool:
     pool=settings.POOL
   logger = logs.get_logger()
   temp_path = settings.QCOW_TEMP_PATH
-  if not os.path.isdir(temp_path):
-    os.makedirs("%s/%s" % (temp_path,pool),0700)
-  # FIXME do this for all pools
   if not os.path.isdir("%s/%s" % (temp_path,pool)):
-    os.mkdir("%s/%s" % (temp_path,pool),0700)
+    logger.info('creating qcow temp path: %s/%s' % (temp_path,pool))
+    os.makedirs("%s/%s" % (temp_path,pool),0700)
+  else:
+    logger.info('using qcow temp path: %s/%s' % (temp_path,pool))
 
 # check that temp_path is empty
 # this is used to rotate orphans
