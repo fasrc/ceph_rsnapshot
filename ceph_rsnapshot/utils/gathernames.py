@@ -25,7 +25,7 @@ sh_logging = False
 
 
 def list_pool(pool,filter=all_re):
-  rbd_ls_result = rbd.ls(pool,format='json')
+  rbd_ls_result = rbd.ls(pool,cluster=settings.CEPH_CLUSTER,format='json')
   if rbd_ls_result.exit_code != 0:
     raise NameError
   rbd_images_filtered = [image for image in json.loads(rbd_ls_result.stdout) if re.match(all_re,image)]
@@ -42,7 +42,7 @@ def check_snap(image,pool='rbd',snap=''):
     snap = get_today()
   # check if today snap exists for this image
   try:
-    rbd_check_result = rbd.info('%s/%s@%s' % (pool, image, snap))
+    rbd_check_result = rbd.info('%s/%s@%s' % (pool, image, snap),cluster=settings.CEPH_CLUSTER)
   except Exception as e:
     # for now just take any error and say it doesn't have a snap
     return False
