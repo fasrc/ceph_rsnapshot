@@ -13,25 +13,22 @@ from ceph_rsnapshot.logs import setup_logging
 from ceph_rsnapshot import settings
 
 
-# images are one-NN
-image_re = r'^one-[0-9]+$'
-# vms are one-NN-XX-YY for image NN vm XX and disk YY
-vm_re = r'^one(-[0-9]+){3}$'
-# images or vms are (with the additional accidental acceptance of one-NN-XX
-all_re = r'^one(-[0-9]+){1,3}$'
-
-
-sh_logging = False
-
-
-def list_pool(pool,filter=all_re):
-  rbd_ls_result = rbd.ls(pool,cluster=settings.CEPH_CLUSTER,format='json')
-  if rbd_ls_result.exit_code != 0:
+def list_pool(pool,image_re=''):
+  if not image_re:
+    image_re = settings.IMAGE_RE
+  try:
+    rbd_ls_result = rbd.ls(pool,cluster=settings.CEPH_CLUSTER,format='json')
+  except Exception as e:
+    logger.error(e)
     raise NameError
-  rbd_images_filtered = [image for image in json.loads(rbd_ls_result.stdout) if re.match(all_re,image)]
+  rbd_images_unfiltered = json.loads(rbd_ls_result.stdout)
+  logger.info('all images: %s' % ' '.join(rbd_images_unfiltered))
+  rbd_images_filtered = [image for image in rbd_images_unfiltered if re.match(image_re,image)]
+  logger.info('images after filtering: %s' % rbd_images_filtered)
   return rbd_images_filtered
 
 # FIXME need this on export qcow script too
+# FIXME use SNAP_NAMING_DATE_FORMAT
 def get_today():
   return sh.date('--iso').strip('\n')
 
@@ -40,35 +37,37 @@ def get_today():
 def check_snap(image,pool='',snap=''):
   if not pool:
     pool=settings.POOL
-  if snap == '':
+  if not snap:
     snap = get_today()
   # check if today snap exists for this image
   try:
     rbd_check_result = rbd.info('%s/%s@%s' % (pool, image, snap),cluster=settings.CEPH_CLUSTER)
+    logger.info('found snap for image %s/%s' % (pool, image))
   except Exception as e:
+    logger.warning('no snap found for image %s/%s' % (pool, image))
     # for now just take any error and say it doesn't have a snap
     return False
-    # raise NameError, e
-    # if rbd_check_result.exit_code != 0:
-    #   raise NameError, "today snap does not exist for image %s" % image
   return True
 
 def gathernames():
-  parser = argparse.ArgumentParser(description='Gather a list of rbd images in a given pool with snaps from today')
-  parser.add_argument('pool', help='ceph pool to get list of rbd images for')
+  parser = argparse.ArgumentParser(description='Gather a list of rbd images in a given pool with snaps from today',
+                                   argument_default=argparse.SUPPRESS)
+  parser.add_argument('pool', required=False, help='ceph pool to get list of rbd images for')
   # parser.add_argument('image')
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
   #                     const=sum, default=max,
   #                     help='sum the integers (default: find the max)')
   args = parser.parse_args()
-  pool = args.pool
-  # print("exporting %s" % image)
 
   settings.load_settings()
-  logger = setup_logging()
 
+  if args.__contains__('pool'):
+    settings.POOL = args.pool
 
-  images_to_check = list_pool(pool)
+  logger = setup_logging(stdout=False)
+
+  logger.info('gathernames starting checking for images in pool %s on cluster %s' %(settings.POOL, settings.CEPH_CLUSTER))
+  images_to_check = list_pool(settings.POOL)
   images_with_snaps=[]
   images_without_snaps=[]
   for image in images_to_check:
@@ -84,3 +83,4 @@ def gathernames():
   # for now just print
   print('\n'.join(images_with_snaps)) # to stdout
   # logger.info('images: %s' % ','.join(images_with_snaps)) # to stderr via stream handler above
+  logger.info('gathernames done')

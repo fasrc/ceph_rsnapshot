@@ -4,7 +4,9 @@ import sh, sys, os, socket, logging
 from ceph_rsnapshot import settings
 
 
-def setup_logging():
+# setup logging to file, and if stdout is True, log to stdout as well
+# granularity needed for gathernames replying via ssh
+def setup_logging(stdout=True):
   log_location = settings.LOG_BASE_PATH
   log_filename = settings.LOG_FILENAME
   sh_logging = settings.SH_LOGGING
@@ -44,12 +46,15 @@ def setup_logging():
   if sh_logging:
     sh_logger.addHandler(fileHandler)
 
-  # setup console loggers
-  consoleHandler = logging.StreamHandler(sys.stdout)
-  consoleHandler.setFormatter(logFormatter)
-  logger.addHandler(consoleHandler)
-  if sh_logging:
-    sh_logger.addHandler(consoleHandler)
+  # if set to log to stdout, setup console loggers
+  if stdout:
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setFormatter(logFormatter)
+    logger.addHandler(consoleHandler)
+    if sh_logging:
+      sh_logger.addHandler(consoleHandler)
+
+  # return logger
   return(logger)
 
 def get_logger():
