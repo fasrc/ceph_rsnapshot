@@ -41,6 +41,7 @@ SETTINGS = dict(
   RETAIN_NUMBER=14,
   # date format string to pass to `date` to get snap naming,
   # iso format %Y-%m-%d would yield names like imagename@2016-10-04
+  # TODO use this everywhere instead of date --iso
   SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',
   # min freespace to leave on ceph node for exporting qcow temporarily
   MIN_FREESPACE = 100*1024*1024, # 100mb
