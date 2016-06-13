@@ -287,8 +287,9 @@ def rsnap_pool(pool):
   len_names = len(names_on_source)
   index = 1
   if len_names == 1 and names_on_source[0] == u'':
+    # TODO decide if this is critical/stop or just warn
     logger.critical('no images found on source')
-    sys.exit(1)
+    # sys.exit(1)
   else:
     for image in names_on_source:
       logger.info('working on name %s of %s in pool %s: %s' % (index, len_names, pool, image))
