@@ -115,6 +115,8 @@ def rotate_orphans(pool=''):
     try:
       rsnap_result = rsnapshot('-c','%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, orphan),settings.RETAIN_INTERVAL)
       # if ssuccessful, log
+    if rsnap_result.stdout.strip("\n"):
+      logger.info("successful; stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
       orphans_rotated.append(orphan)
     except Exception as e:
       orphans_failed_to_rotate.append(orphan)
