@@ -74,7 +74,7 @@ def setup_qcow_temp_path(pool=''):
 # this is used to rotate orphans
 # TODO make this use an empty tempdir
 def make_empty_source():
-  temp_path = settings.QCOW_TEMP_PATH
+  temp_path = "%s/empty_source/" % settings.QCOW_TEMP_PATH
   # get logger we setup earlier
   logger = logs.get_logger()
   try:
