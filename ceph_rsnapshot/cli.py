@@ -165,28 +165,31 @@ def rsnap_image_sh(image,pool=''):
     pool = settings.POOL
   # TODO check free space before rsnapping
   logger.info("rsnapping %s" % image)
-  try:
-    rsnap_conf_file = '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
-    ts=time.time()
-    if settings.NOOP:
-      logger.info('NOOP: would have rsnapshotted image from conf file '
-      '%s/%s/%s.conf for retain interval %s ' % (settings.TEMP_CONF_DIR,
-        pool, image,settings.RETAIN_INTERVAL))
-    else:
-      rsnap_result = rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
-    tf=time.time()
-    elapsed_time = tf-ts
-    elapsed_time_ms = elapsed_time * 10**3
-    rsnap_ok = True
-    logger.info("rsnap successful for image %s in %sms" % (image, elapsed_time_ms))
-    if rsnap_result.stdout.strip("\n"):
-      logger.info("stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
-  except Exception as e:
-    logger.error("failed to rsnap %s with code %s" % (image, e.exit_code))
-    # TODO move log formatting and writing to a function
-    logger.error("stdout from rsnap:\n"+e.stdout.strip("\n"))
-    logger.error("stderr from rsnap:\n"+e.stderr.strip("\n"))
+  rsnap_conf_file = '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
+  if settings.NOOP:
+    logger.info('NOOP: would have rsnapshotted image from conf file '
+    '%s/%s/%s.conf for retain interval %s ' % (settings.TEMP_CONF_DIR,
+      pool, image,settings.RETAIN_INTERVAL))
+    # set this False so it's clear this wasn't successful as it was a noop
     rsnap_ok = False
+  else:
+    try:
+      ts=time.time()
+      rsnap_result = rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
+      tf=time.time()
+      elapsed_time = tf-ts
+      elapsed_time_ms = elapsed_time * 10**3
+      rsnap_ok = True
+      logger.info("rsnap successful for image %s in %sms" % (image, elapsed_time_ms))
+      if rsnap_result.stdout.strip("\n"):
+        logger.info("stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
+    # TODO handle only rsnap sh exception
+    except Exception as e:
+      logger.error("failed to rsnap %s with code %s" % (image, e.exit_code))
+      # TODO move log formatting and writing to a function
+      logger.error("stdout from rsnap:\n"+e.stdout.strip("\n"))
+      logger.error("stderr from rsnap:\n"+e.stderr.strip("\n"))
+      rsnap_ok = False
   return rsnap_ok
 
 def remove_qcow(image,pool=''):
