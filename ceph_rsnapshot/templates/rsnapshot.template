@@ -24,7 +24,7 @@ retain	{{ retain_interval }}	{{ retain_number }}
 logfile	{{ log_base_path }}/rsnap/{{pool}}/{{ nickname }}.log
 
 #Lockfile, must be unique, so backups don't collide but others can run
-lockfile	/var/run/rsnapshot_{{ nickname }}.pid
+lockfile	/var/run/rsnapshot_{{ pool }}_{{ nickname }}.pid
 
 #Source dir
 backup	{{ source }}	{{ subdir }}
