@@ -51,11 +51,13 @@ def setup_temp_conf_dir(pool=''):
     try:
       if settings.NOOP:
         logger.info('NOOP: would have made temp dir with mkdtemp prefix' % settings.TEMP_CONF_DIR_PREFIX)
+        temp_conf_dir = '/tmp/ceph_rsnapshot_mkdtemp_noop_fake_path'
       else:
         temp_conf_dir = tempfile.mkdtemp(prefix=settings.TEMP_CONF_DIR_PREFIX)
         logger.info('created temp conf dir: %s' % temp_conf_dir)
       # store this in global settings
       settings.TEMP_CONF_DIR = temp_conf_dir
+    # TODO only catch io error here
     except Exception as e:
       logger.error('cannot create conf temp dir with error %s' % e)
       sys.exit(1)
