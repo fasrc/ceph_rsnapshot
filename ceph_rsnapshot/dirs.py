@@ -130,6 +130,9 @@ def setup_dir(directory):
             logger.info('NOOP: would have made directory %s' % directory)
         else:
             os.makedirs(directory, 0700)
+    else:
+        # already exists, log
+        logger.info('directory %s already exists, so not changing' % directory)
 
 
 def setup_dir_per_pool(directory):
