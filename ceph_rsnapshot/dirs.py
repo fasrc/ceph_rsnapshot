@@ -4,6 +4,23 @@ import sys
 import tempfile
 
 
+def check_set_dir_perms(directory, perms=0o700):
+    logger = logs.get_logger()
+    desired_mode = oct(perms)[-3:]
+    if settings.NOOP:
+      logger.info('NOOP: would have verified that permissions on %s are %s' %
+        ( directory, desired_mode ))
+    else:
+      dir_stat = os.stat(directory)
+      current_mode = oct(dir_stat.st_mode)[-3:]
+      if current_mode != desired_mode:
+        logger.warning('perms not correct on %s: currently %s should be %s,'
+                       'fixing' % (directory, current_mode, desired_mode))
+        os.chmod(directory, perms)
+        logger.info('perms now correctly set to %s on %s' % (desired_mode,
+                                                             directory))
+
+
 def setup_backup_dirs(pool='', dirs=''):
     logger = logs.get_logger()
     if not pool:
@@ -98,6 +115,8 @@ def setup_qcow_temp_path(pool=''):
             os.makedirs("%s/%s" % (temp_path, pool), 0700)
     else:
         logger.info('using qcow temp path: %s/%s' % (temp_path, pool))
+    # now just to be safe verify perms on it are 700
+    check_set_dir_perms('%s/%s' % (temp_path, pool), 0o700)
 
 # check that temp_path is empty
 # this is used to rotate orphans
@@ -127,12 +146,14 @@ def setup_dir(directory):
     if not os.path.isdir(directory):
         # make dir and preceeding dirs if necessary
         if settings.NOOP:
-            logger.info('NOOP: would have made directory %s' % directory)
+            logger.info('NOOP: would have run makedirs on path %s' % directory)
         else:
             os.makedirs(directory, 0700)
     else:
-        # already exists, log
-        logger.info('directory %s already exists, so not changing' % directory)
+        logger.info('directory %s already exists, so using it' % directory)
+        # still need to check perms
+        check_set_dir_perms(directory)
+
 
 
 def setup_dir_per_pool(directory):
