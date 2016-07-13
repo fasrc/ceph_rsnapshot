@@ -34,6 +34,7 @@ def setup_temp_conf_dir(pool=''):
     pool=settings.POOL
   logger = logs.get_logger()
   if settings.TEMP_CONF_DIR:
+    # if it's been set, use it
     if os.path.isdir(settings.TEMP_CONF_DIR):
       logger.info('using temp conf dir %s' % settings.TEMP_CONF_DIR)
     else:
@@ -48,6 +49,7 @@ def setup_temp_conf_dir(pool=''):
         ' setting %s with error %s' % (settings.TEMP_CONF_DIR, e))
         sys.exit(1)
   else:
+    # if not, make one
     try:
       if settings.NOOP:
         logger.info('NOOP: would have made temp dir with mkdtemp prefix' % settings.TEMP_CONF_DIR_PREFIX)
@@ -61,6 +63,7 @@ def setup_temp_conf_dir(pool=''):
     except Exception as e:
       logger.error('cannot create conf temp dir with error %s' % e)
       sys.exit(1)
+  # now make for pool
   if settings.NOOP:
     logger.info('NOOP: would have made temp conf subdir for pool %s' % pool)
   else:
