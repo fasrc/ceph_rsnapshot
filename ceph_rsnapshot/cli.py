@@ -343,6 +343,7 @@ def ceph_rsnapshot():
   parser.add_argument('-p', '--pool', help='ceph pool to back up', required=False)
   parser.add_argument("-v", "--verbose", action='store_true',required=False, help="verbose logging output")
   parser.add_argument("--noop", action='store_true',required=False, help="noop - don't make any directories or do any actions. logging only to stdout")
+  parser.add_argument("--printsettings", action='store_true',required=False, help="print out settings using and exit")
   parser.add_argument("-k", "--keepconf", action='store_true',required=False, help="keep conf files after run")
   parser.add_argument("-e", "--extralongargs", required=False, help="extra long args for rsync of format foo,bar for arg --foo --bar")
   # TODO add a param to show config it would use
@@ -379,7 +380,13 @@ def ceph_rsnapshot():
     # FIXME not working correctly
   # image_filter = args.image_filter
 
-  # TODO print out settings using
+  # print out settings using and exit
+  if args.__contains__('printsettings'):
+    # if it's there it's true
+    logger.info('settings would have been:')
+    logger.info(settings.get_current_settings())
+    logger.info('exiting')
+    sys.exit(0)
 
   # get local variables we need from settings we just set
   pool = settings.POOL

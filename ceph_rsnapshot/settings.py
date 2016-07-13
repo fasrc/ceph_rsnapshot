@@ -76,3 +76,26 @@ def load_settings(config_file=''):
   globals().update(settings)
   return settings
 
+def get_current_settings():
+    return(dict(
+        CEPH_HOST=settings.CEPH_HOST,
+        CEPH_USER=settings.CEPH_USER,
+        CEPH_CLUSTER=settings.CEPH_CLUSTER,
+        POOL=settings.POOL,
+        QCOW_TEMP_PATH=settings.QCOW_TEMP_PATH,
+        EXTRA_ARGS=settings.EXTRA_ARGS,
+        TEMP_CONF_DIR_PREFIX=settings.TEMP_CONF_DIR_PREFIX,
+        TEMP_CONF_DIR=settings.TEMP_CONF_DIR,
+        BACKUP_BASE_PATH=settings.BACKUP_BASE_PATH,
+        KEEPCONF=settings.KEEPCONF,
+        LOG_BASE_PATH=settings.LOG_BASE_PATH,
+        LOG_FILENAME=settings.LOG_FILENAME,
+        VERBOSE=settings.VERBOSE,
+        NOOP=settings.NOOP,
+        IMAGE_RE=settings.IMAGE_RE,
+        RETAIN_INTERVAL=settings.RETAIN_INTERVAL,
+        RETAIN_NUMBER=settings.RETAIN_NUMBER,
+        SNAP_NAMING_DATE_FORMAT=settings.SNAP_NAMING_DATE_FORMAT,
+        MIN_FREESPACE=settings.MIN_FREESPACE, 
+        SH_LOGGING=settings.SH_LOGGING,
+    ))
