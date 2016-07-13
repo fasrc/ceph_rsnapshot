@@ -12,6 +12,7 @@ import argparse, socket,time
 import re
 
 import logging
+import json
 
 # from ceph_rsnapshot.helpers import qcow
 # qcow.remove
@@ -409,7 +410,7 @@ def ceph_rsnapshot():
   if args.__contains__('printsettings'):
     # if it's there it's true
     logger.info('settings would have been:')
-    logger.info(get_current_settings())
+    logger.info(json.dumps(get_current_settings(), indent=2))
     logger.info('exiting')
     sys.exit(0)
 
