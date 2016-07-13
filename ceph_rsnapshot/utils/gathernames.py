@@ -16,7 +16,8 @@ from ceph_rsnapshot import settings
 def list_pool(pool,image_re=''):
   # can't log to stdout until TODO pass json back to rsnapshot node 
   # so don't log if noop - if noop can't write to file either
-  logger = logs.get_logger()
+  if not settings.NOOP:
+    logger = logs.get_logger()
   if not image_re:
     image_re = settings.IMAGE_RE
   try:
@@ -25,9 +26,11 @@ def list_pool(pool,image_re=''):
     logger.error(e)
     raise NameError
   rbd_images_unfiltered = json.loads(rbd_ls_result.stdout)
-  logger.info('all images: %s' % ' '.join(rbd_images_unfiltered))
+  if not settings.NOOP:
+    logger.info('all images: %s' % ' '.join(rbd_images_unfiltered))
   rbd_images_filtered = [image for image in rbd_images_unfiltered if re.match(image_re,image)]
-  logger.info('images after filtering by image_re: %s' % ' '.join(rbd_images_filtered))
+  if not settings.NOOP:
+    logger.info('images after filtering by image_re: %s' % ' '.join(rbd_images_filtered))
   return rbd_images_filtered
 
 # FIXME need this on export qcow script too
@@ -49,9 +52,11 @@ def check_snap(image,pool='',snap=''):
   # check if today snap exists for this image
   try:
     rbd_check_result = rbd.info('%s/%s@%s' % (pool, image, snap),cluster=settings.CEPH_CLUSTER)
-    logger.info('found snap for image %s/%s' % (pool, image))
+    if not settings.NOOP:
+      logger.info('found snap for image %s/%s' % (pool, image))
   except Exception as e:
-    logger.warning('no snap found for image %s/%s' % (pool, image))
+    if not settings.NOOP:
+      logger.warning('no snap found for image %s/%s' % (pool, image))
     # for now just take any error and say it doesn't have a snap
     return False
   return True
@@ -78,8 +83,7 @@ def gathernames():
   # so don't log if noop - if noop can't write to file either
   if not settings.NOOP:
     logger = logs.setup_logging(stdout=False)
-
-  logger.info('gathernames starting checking for images in pool %s on cluster %s' %(settings.POOL, settings.CEPH_CLUSTER))
+    logger.info('gathernames starting checking for images in pool %s on cluster %s' %(settings.POOL, settings.CEPH_CLUSTER))
   images_to_check = list_pool(settings.POOL)
   images_with_snaps=[]
   images_without_snaps=[]
@@ -96,4 +100,5 @@ def gathernames():
   # for now just print
   print('\n'.join(images_with_snaps)) # to stdout
   # logger.info('images: %s' % ','.join(images_with_snaps)) # to stderr via stream handler above
-  logger.info('gathernames done')
+  if not settings.NOOP:
+    logger.info('gathernames done')
