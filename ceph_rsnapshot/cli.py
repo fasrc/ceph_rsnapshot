@@ -425,35 +425,52 @@ def ceph_rsnapshot():
     print('running with settings:\n')
     logger.info(json.dumps(get_current_settings(), indent=2))
 
-  # get local variables we need from settings we just set
-  pool = settings.POOL
-
-  # setup directories
-  dirs.setup_temp_conf_dir(pool)
-  dirs.setup_backup_dirs()
-  dirs.setup_log_dirs()
 
   # TODO wrap pools here
   # for pool in POOLS:
   #   settings.POOL=pool
 
-  result = rsnap_pool(pool)
+  # get local variables we need from settings we just set
+  pool = settings.POOL
 
-  if not settings.KEEPCONF:
-    dirs.remove_temp_conf_dir()
+  # write lockfile for this pool
+  # http://stackoverflow.com/a/789383/5928049
+  pid = str(os.getpid())
+  pidfile = "/var/run/ceph_rsnapshot_cephhost_%s_pool_%s.pid"
+    "" % (settings.CEPH_HOST, pool)
+  if os.path.isfile(pidfile):
+    logger.error("pidfile %s already exists, exiting" % pidfile)
+    sys.exit(1)
+  logger.info("writing lockfile at %s" % pidfile)
+  file(pidfile, 'w').write(pid)
+  try:
+    # we've made the lockfile, so rsnap the pool
+    # setup directories
+    dirs.setup_temp_conf_dir(pool)
+    dirs.setup_backup_dirs()
+    dirs.setup_log_dirs()
 
-  # write output
-  logger.info("Successful: %s" % ','.join(result['successful']))
-  if result['failed']:
-    logger.error("Failed:")
-    logger.error(result['failed'])
-  if result['orphans_rotated']:
-    logger.info("orphans rotated:")
-    logger.info(result['orphans_rotated'])
-  if result['orphans_failed_to_rotate']:
-    logger.error("orphans failed to rotate:")
-    logger.error(result['orphans_failed_to_rotate'])
-  logger.info("done")
+    result = rsnap_pool(pool)
+
+    if not settings.KEEPCONF:
+      dirs.remove_temp_conf_dir()
+
+    # write output
+    logger.info("Successful: %s" % ','.join(result['successful']))
+    if result['failed']:
+      logger.error("Failed:")
+      logger.error(result['failed'])
+    if result['orphans_rotated']:
+      logger.info("orphans rotated:")
+      logger.info(result['orphans_rotated'])
+    if result['orphans_failed_to_rotate']:
+      logger.error("orphans failed to rotate:")
+      logger.error(result['orphans_failed_to_rotate'])
+    logger.info("done")
+  finally:
+    # done with this pool so clear the pidfile
+    logger.info("removing lockfile at %s" % pidfile)
+    os.unlink(pidfile)
 
   if result['failed']:
     sys.exit(1)
