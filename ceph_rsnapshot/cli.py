@@ -436,8 +436,8 @@ def ceph_rsnapshot():
   # write lockfile for this pool
   # http://stackoverflow.com/a/789383/5928049
   pid = str(os.getpid())
-  pidfile = "/var/run/ceph_rsnapshot_cephhost_%s_pool_%s.pid"
-    "" % (settings.CEPH_HOST, pool)
+  pidfile = ("/var/run/ceph_rsnapshot_cephhost_"
+    "%s_pool_%s.pid""" ) % (settings.CEPH_HOST, pool)
   if os.path.isfile(pidfile):
     logger.error("pidfile %s already exists, exiting" % pidfile)
     sys.exit(1)
