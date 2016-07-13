@@ -417,10 +417,13 @@ def ceph_rsnapshot():
   # print out settings using and exit
   if args.__contains__('printsettings'):
     # if it's there it's true
-    logger.info('settings would have been:')
+    logger.info('settings would have been:\n')
     logger.info(json.dumps(get_current_settings(), indent=2))
     logger.info('exiting')
     sys.exit(0)
+  else:
+    print('running with settings:\n')
+    logger.info(json.dumps(get_current_settings(), indent=2))
 
   # get local variables we need from settings we just set
   pool = settings.POOL
