@@ -66,7 +66,12 @@ def get_names_on_dest(pool=''):
   backup_path = "%s/%s" % (backup_base_path, pool)
   try:
     names_on_dest = os.listdir(backup_path)
-  except Exception as e:
+  except IOError as e:
+    if settings.NOOP:
+      # this will fail if noop and the dir doesn't exist, so
+      # fake nothing there and move on
+      logger.info('NOOP: would have listed vms in directory %s' % backup_path )
+      return []
     logger.error(e)
     raise NameError('get_names_on_dest failed')
   # FIXME cehck error
