@@ -149,7 +149,7 @@ def remove_temp_conf_dir():
         logger.info("removing temp conf dir %s" % settings.TEMP_CONF_DIR)
         try:
             if settings.NOOP:
-                logger.info('would have removed temp conf dirs %s/%s and %s',
+                logger.info('would have removed temp conf dirs %s/%s and %s' %
                             (settings.TEMP_CONF_DIR, settings.POOL, settings.TEMP_CONF_DIR))
             else:
                 # TODO all pools
