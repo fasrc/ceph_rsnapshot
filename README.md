@@ -19,9 +19,13 @@ On the backup (dest) node:
 
 ## Requirements
 
-This script does not generate the ceph snapshots, those need to be generated externally.
+- This script does not generate the ceph snapshots, those need to be generated externally.
 
-The script requires rsnapshot be installed on the system already (via system packages).
+- The script requires rsnapshot be installed on the backup node already (via system packages).
+
+- This also requires qemu-img to be installed on the ceph node.
+
+- requires passwordless ssh from the backup node to the ceph node
 
 ## Configuration
 
