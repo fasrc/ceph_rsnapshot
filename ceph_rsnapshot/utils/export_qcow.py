@@ -7,21 +7,20 @@
 
 # TODO  print free space and size and etc
 
-import os, sys, socket, logging
+import os, sys, socket
 import sh
 from sh import rbd
 import argparse
 import json
 import time
 
-from ceph_rsnapshot.logs import setup_logging
 from ceph_rsnapshot import logs, dirs
 from ceph_rsnapshot import settings
 
 
 def get_freespace(path):
   # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
+  logger = logs.get_logger()
   statvfs = os.statvfs(path)
   avail_bytes = statvfs.f_frsize * statvfs.f_bavail
   return avail_bytes
@@ -49,7 +48,7 @@ def get_today():
 
 def export_qcow_sh(image,pool,cephuser,cephcluster,snap=''):
   # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
+  logger = logs.get_logger()
   if snap == '':
     snap = get_today()
   # use this because it has a dash in the command name
@@ -94,7 +93,7 @@ def export_qcow():
   if args.__contains__('cephcluster'):
     settings.CEPH_CLUSTER = args.cephcluster
 
-  logger = setup_logging()
+  logger = logs.setup_logging()
 
   logger.info("exporting image %s from pool %s..." % (image, settings.POOL))
 
