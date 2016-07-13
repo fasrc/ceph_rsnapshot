@@ -59,8 +59,8 @@ def setup_temp_conf_dir(pool=''):
         # if not, make one
         try:
             if settings.NOOP:
-                logger.info('NOOP: would have made temp dir with mkdtemp prefix' %
-                            settings.TEMP_CONF_DIR_PREFIX)
+                logger.info('NOOP: would have made temp dir with mkdtemp'
+                    ' prefix: %s' % settings.TEMP_CONF_DIR_PREFIX)
                 temp_conf_dir = '/tmp/ceph_rsnapshot_mkdtemp_noop_fake_path'
             else:
                 temp_conf_dir = tempfile.mkdtemp(
