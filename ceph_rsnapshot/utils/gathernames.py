@@ -14,6 +14,8 @@ from ceph_rsnapshot import settings
 
 
 def list_pool(pool,image_re=''):
+  # can't log to stdout until TODO pass json back to rsnapshot node 
+  # so don't log if noop - if noop can't write to file either
   logger = logs.get_logger()
   if not image_re:
     image_re = settings.IMAGE_RE
@@ -36,7 +38,10 @@ def get_today():
 # checks a image has a snap of given name,
 # or of iso today format if no snap name passed
 def check_snap(image,pool='',snap=''):
-  logger = logs.get_logger()
+  # can't log to stdout until TODO pass json back to rsnapshot node 
+  # so don't log if noop - if noop can't write to file either
+  if not settings.NOOP:
+    logger = logs.get_logger()
   if not pool:
     pool=settings.POOL
   if not snap:
@@ -69,7 +74,10 @@ def gathernames():
   if args.__contains__('noop'):
     settings.NOOP = args.noop
 
-  logger = logs.setup_logging(stdout=False)
+  # can't log to stdout until TODO pass json back to rsnapshot node 
+  # so don't log if noop - if noop can't write to file either
+  if not settings.NOOP:
+    logger = logs.setup_logging(stdout=False)
 
   logger.info('gathernames starting checking for images in pool %s on cluster %s' %(settings.POOL, settings.CEPH_CLUSTER))
   images_to_check = list_pool(settings.POOL)
