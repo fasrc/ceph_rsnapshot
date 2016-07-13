@@ -24,14 +24,6 @@ def setup_logging(stdout=True):
   if sh_logging:
     sh_logger.setLevel(log_level)
 
-  # if set to log to stdout, setup console loggers
-  if stdout:
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setFormatter(logFormatter)
-    logger.addHandler(consoleHandler)
-    if sh_logging:
-      sh_logger.addHandler(consoleHandler)
-
   # setup log format
   pid = os.getpid()
   hostname = socket.gethostname()
@@ -40,6 +32,14 @@ def setup_logging(stdout=True):
   # LOG_FORMAT = ("%(asctime)s [" + str(pid) +
   #               "] [%(levelname)-5.5s] [%(name)s] %(message)s")
   logFormatter = logging.Formatter(LOG_FORMAT)
+
+  # if set to log to stdout, setup console loggers
+  if stdout:
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setFormatter(logFormatter)
+    logger.addHandler(consoleHandler)
+    if sh_logging:
+      sh_logger.addHandler(consoleHandler)
 
   # setup logging dirs
   if not os.path.isdir(log_location):
