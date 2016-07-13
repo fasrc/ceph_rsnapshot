@@ -472,6 +472,9 @@ def ceph_rsnapshot():
     logger.info("removing lockfile at %s" % pidfile)
     os.unlink(pidfile)
 
+  if settings.NOOP:
+    logger.info("end of NOOP run")
+
   if result['failed']:
     sys.exit(1)
   elif result['orphans_failed_to_rotate']:
