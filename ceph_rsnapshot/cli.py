@@ -66,7 +66,7 @@ def get_names_on_dest(pool=''):
   backup_path = "%s/%s" % (backup_base_path, pool)
   try:
     names_on_dest = os.listdir(backup_path)
-  except IOError as e:
+  except (IOError, OSError) as e:
     if settings.NOOP:
       # this will fail if noop and the dir doesn't exist, so
       # fake nothing there and move on
