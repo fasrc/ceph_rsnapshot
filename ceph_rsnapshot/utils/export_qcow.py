@@ -60,7 +60,10 @@ def export_qcow_sh(image,pool,cephuser,cephcluster,snap=''):
   logger.info('running rbd export with command qemu-img convert %s %s f=raw O=qcow2' % (qemu_source_string, qemu_dest_string))
   try:
     ts=time.time()
-    export_result = qemuimg.convert(qemu_source_string, qemu_dest_string, f='raw', O='qcow2')
+    if settings.NOOP:
+      logger.info('NOOP: would have exported qcow')
+    else:
+      export_result = qemuimg.convert(qemu_source_string, qemu_dest_string, f='raw', O='qcow2')
     tf=time.time()
     elapsed_time = tf-ts
     elapsed_time_ms = elapsed_time * 10**3
@@ -77,6 +80,7 @@ def export_qcow():
   parser.add_argument('--pool', required=False)
   parser.add_argument('--cephuser', required=False)
   parser.add_argument('--cephcluster', required=False)
+  parser.add_argument("--noop", action='store_true',required=False, help="noop - don't make any directories or do any actions. logging only to stdout")
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
   #                     const=sum, default=max,
   #                     help='sum the integers (default: find the max)')
@@ -92,6 +96,8 @@ def export_qcow():
     settings.CEPH_USER = args.cephuser
   if args.__contains__('cephcluster'):
     settings.CEPH_CLUSTER = args.cephcluster
+  if args.__contains__('noop'):
+    settings.NOOP = args.noop
 
   logger = logs.setup_logging()
 

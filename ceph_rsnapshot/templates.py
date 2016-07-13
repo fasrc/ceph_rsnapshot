@@ -43,11 +43,17 @@ def write_conf(image, pool = '', source='', template=''):
                                 subdir = '',
                                 extra_args = settings.EXTRA_ARGS)
 
-  # conf file of the form /tmp_conf_dir/pool/imagename.conf
-  conf_file = open('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image),'w')
-  # FIXME raise error if error
-  conf_file.write(my_template)
-  # FIXME raise error if error
+  if settings.NOOP:
+    logger.info('NOOP: would have written conf file to %s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
+    logger.info('NOOP: conf file contents would have been: \n%s' % my_template)
+    # fake conf file name to return
+    return '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
+  else:
+    # conf file of the form /tmp_conf_dir/pool/imagename.conf
+    conf_file = open('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image),'w')
+    # FIXME raise error if error
+    conf_file.write(my_template)
+    # FIXME raise error if error
   return conf_file.name
 
 # note using mkdtemp to make a tmep dir for these so not using mkstemp
@@ -61,8 +67,11 @@ def remove_conf(image,pool=''):
     pool = settings.POOL
   # get logger we setup earlier
   logger = logs.get_logger()
-  os.remove('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
-  # FIXME raise error if error
+  if settings.NOOP:
+    logger.info('NOOP: would have removed conf file %s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
+  else:
+    os.remove('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
+    # FIXME raise error if error
 
 
 

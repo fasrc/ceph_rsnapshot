@@ -19,16 +19,18 @@ def setup_logging(stdout=True):
   log_level = logging.INFO
   if verbose == True:
     log_level = logging.DEBUG
-  if not os.path.isdir(log_location):
-    os.makedirs(log_location)
-  if not os.path.isdir("%s/rsnap" % log_location):
-    os.makedirs("%s/rsnap" % log_location)
-  log_file = "%s/%s" % (log_location, log_filename)
-  # logging.basicConfig(filename=log_file, level=log_level)
 
   logger.setLevel(log_level)
   if sh_logging:
     sh_logger.setLevel(log_level)
+
+  # if set to log to stdout, setup console loggers
+  if stdout:
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setFormatter(logFormatter)
+    logger.addHandler(consoleHandler)
+    if sh_logging:
+      sh_logger.addHandler(consoleHandler)
 
   # setup log format
   pid = os.getpid()
@@ -39,20 +41,30 @@ def setup_logging(stdout=True):
   #               "] [%(levelname)-5.5s] [%(name)s] %(message)s")
   logFormatter = logging.Formatter(LOG_FORMAT)
 
-  # set format on file loggers
-  fileHandler = logging.FileHandler(log_file)
-  fileHandler.setFormatter(logFormatter)
-  logger.addHandler(fileHandler)
-  if sh_logging:
-    sh_logger.addHandler(fileHandler)
+  # setup logging dirs
+  if not os.path.isdir(log_location):
+    if settings.NOOP:
+      logger.info('NOOP: would have made log dir at %s' % log_location)
+    else:
+      os.makedirs(log_location)
+  if not os.path.isdir("%s/rsnap" % log_location):
+    if settings.NOOP:
+      logger.info('NOOP: would have made log dir at %s/rsnap' % log_location)
+    else:
+      os.makedirs("%s/rsnap" % log_location)
+  log_file = "%s/%s" % (log_location, log_filename)
+  # logging.basicConfig(filename=log_file, level=log_level)
 
-  # if set to log to stdout, setup console loggers
-  if stdout:
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setFormatter(logFormatter)
-    logger.addHandler(consoleHandler)
+  # set format on file loggers
+  if settings.NOOP:
+    logger.info('would have added file logging')
+  else:
+    fileHandler = logging.FileHandler(log_file)
+    fileHandler.setFormatter(logFormatter)
+    logger.addHandler(fileHandler)
     if sh_logging:
-      sh_logger.addHandler(consoleHandler)
+      sh_logger.addHandler(fileHandler)
+
 
   # return logger
   return(logger)

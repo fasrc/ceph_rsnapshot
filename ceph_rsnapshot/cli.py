@@ -37,7 +37,10 @@ def get_names_on_source(pool=''):
   # FIXME validate pool name no spaces?
   try:
     # TODO FIXME add a timeout here or the first connection and error differently if the source is not responding
-    names_on_source_result = sh.ssh(host,'/home/ceph_rsnapshot/venv/bin/gathernames --pool "%s"' % pool)
+    noopstring=''
+    if settings.NOOP:
+      noopstring='--noop'
+    names_on_source_result = sh.ssh(host,'/home/ceph_rsnapshot/venv/bin/gathernames --pool "%s" %s' % (pool, noopstring))
     logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
   except Exception as e:
     logger.error(e)
@@ -112,17 +115,20 @@ def rotate_orphans(pool=''):
                            source = source,
                            template = template)
     logger.info("rotating orphan %s" % orphan)
-    try:
-      rsnap_result = rsnapshot('-c','%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, orphan),settings.RETAIN_INTERVAL)
-      # if ssuccessful, log
-      if rsnap_result.stdout.strip("\n"):
-        logger.info("successful; stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
-      orphans_rotated.append(orphan)
-    except Exception as e:
-      orphans_failed_to_rotate.append(orphan)
-      logger.error("failed to rotate orphan %s with code %s" % (orphan, e.exit_code))
-      logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
-      logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
+    if settings.NOOP:
+      logger.info('NOOP: would have rotated orphan here using rsnapshot conf see previous lines')
+    else:
+      try:
+        rsnap_result = rsnapshot('-c','%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, orphan),settings.RETAIN_INTERVAL)
+        # if ssuccessful, log
+        if rsnap_result.stdout.strip("\n"):
+          logger.info("successful; stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
+        orphans_rotated.append(orphan)
+      except Exception as e:
+        orphans_failed_to_rotate.append(orphan)
+        logger.error("failed to rotate orphan %s with code %s" % (orphan, e.exit_code))
+        logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
+        logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     # unless flag to keep it for debug
     if not settings.KEEPCONF:
       remove_conf(orphan,pool)
@@ -139,9 +145,10 @@ def export_qcow(image,pool=''):
   # get logger we setup earlier
   logger.info("exporting %s" % image)
   try:
-    # TODO add a dry-run option
+    if settings.NOOP:
+      noopstring='--noop'
     logger.info("ceph host %s" % settings.CEPH_HOST)
-    export_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/export_qcow %s --pool %s --cephuser %s --cephcluster %s' % (image, pool, cephuser, cephcluster))
+    export_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/export_qcow %s --pool %s --cephuser %s --cephcluster %s %s' % (image, pool, cephuser, cephcluster, noopstring))
     export_qcow_ok = True
     logger.info("stdout from source node:\n"+export_result.stdout.strip("\n"))
   except Exception as e:
@@ -160,7 +167,12 @@ def rsnap_image_sh(image,pool=''):
   try:
     rsnap_conf_file = '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
     ts=time.time()
-    rsnap_result = rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
+    if settings.NOOP:
+      logger.info('NOOP: would have rsnapshotted image from conf file '
+      '%s/%s/%s.conf for retain interval %s ' % (settings.TEMP_CONF_DIR,
+        pool, image,settings.RETAIN_INTERVAL))
+    else:
+      rsnap_result = rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
     tf=time.time()
     elapsed_time = tf-ts
     elapsed_time_ms = elapsed_time * 10**3
@@ -182,7 +194,9 @@ def remove_qcow(image,pool=''):
     pool = settings.POOL
   logger.info('going to remove temp qcow for image %s pool %s' % (image, pool))
   try:
-    remove_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/remove_qcow %s --pool %s' % (image, pool))
+    if settings.NOOP:
+      noopstring=' --noop'
+    remove_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/remove_qcow %s --pool %s %s' % (image, pool, noopstring))
     remove_qcow_ok = True
     logger.info("stdout from source node:\n"+remove_result.stdout.strip("\n"))
   except Exception as e:
@@ -328,6 +342,7 @@ def ceph_rsnapshot():
   parser.add_argument("--host", required=False, help="ceph node to backup from")
   parser.add_argument('-p', '--pool', help='ceph pool to back up', required=False)
   parser.add_argument("-v", "--verbose", action='store_true',required=False, help="verbose logging output")
+  parser.add_argument("--noop", action='store_true',required=False, help="noop - don't make any directories or do any actions. logging only to stdout")
   parser.add_argument("-k", "--keepconf", action='store_true',required=False, help="keep conf files after run")
   parser.add_argument("-e", "--extralongargs", required=False, help="extra long args for rsync of format foo,bar for arg --foo --bar")
   # TODO add a param to show config it would use
@@ -355,6 +370,8 @@ def ceph_rsnapshot():
     settings.POOL = args.pool
   if args.__contains__('verbose'):
     settings.VERBOSE = args.verbose
+  if args.__contains__('noop'):
+    settings.NOOP = args.noop
   if args.__contains__('keepconf'):
     settings.KEEPCONF = args.keepconf
   if args.__contains__('extralongargs'):

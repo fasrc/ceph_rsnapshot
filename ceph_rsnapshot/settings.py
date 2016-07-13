@@ -32,6 +32,7 @@ SETTINGS = dict(
   # TODO allow specifying alt path to a jinja template
   # TEMPLATE = '',
   VERBOSE=False,
+  NOOP=False,
   # opennebula images are one-NN
   # vms are one-NN-XX-YY for image NN vm XX and disk YY
   # images or vms are (with the additional accidental acceptance of one-NN-XX
