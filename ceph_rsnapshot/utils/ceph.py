@@ -152,7 +152,7 @@ def get_rbd_size(image,snap='',pool='',cephhost='',cephuser='',cephcluster=''):
     RBD_COMMAND = ('rbd du %s --user=%s --cluster=%s --format=json' %
             (rbd_image_string, cephuser, cephcluster))
     logger.info('getting rbd size from ceph host %s with command %s' % 
-        cephhost, RBD_COMMAND))
+        (cephhost, RBD_COMMAND))
     try:
         rbd_du_result = sh.ssh(cephhost, RBD_COMMAND)
         rbd_image_used_size = (json.loads(rbd_du_result.stdout)['images'][0]
