@@ -60,7 +60,7 @@ def validate_settings_strings():
             # don't compare these to an RE
             continue
         try:
-            if helpers.validate_string(value):
+            if validate_string(value):
                 continue
         except NameError as e:
             # bad character in a string, fail run
