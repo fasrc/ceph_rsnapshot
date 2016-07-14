@@ -3,7 +3,6 @@
 import sh
 import sys
 import os
-import socket
 import logging
 from ceph_rsnapshot import settings
 
@@ -29,12 +28,7 @@ def setup_logging(stdout=True):
         sh_logger.setLevel(log_level)
 
     # setup log format
-    pid = os.getpid()
-    hostname = socket.gethostname()
-    LOG_FORMAT = ("%(asctime)s [" + hostname + " PID:" + str(pid) +
-                  "] [%(levelname)-5.5s] [%(name)s] %(message)s")
-    # LOG_FORMAT = ("%(asctime)s [" + str(pid) +
-    #               "] [%(levelname)-5.5s] [%(name)s] %(message)s")
+    LOG_FORMAT = ("%(asctime)s [%(levelname)-5.5s] [%(name)s] %(message)s")
     logFormatter = logging.Formatter(LOG_FORMAT)
 
     # if set to log to stdout, setup console loggers
