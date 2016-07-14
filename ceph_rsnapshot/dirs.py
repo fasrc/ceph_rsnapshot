@@ -186,7 +186,7 @@ def make_empty_source():
                 logger.info('creating temp empty source path %s' %
                             empty_source_path)
                 try:
-                    os.mkdir(empty_source_path, 0700)
+                    os.makedirs(empty_source_path, 0700)
                 except Exception as e:
                     logger.error('error making empty source %s' % e)
                     raise
