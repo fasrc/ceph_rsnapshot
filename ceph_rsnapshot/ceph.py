@@ -82,8 +82,8 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
     # filter by image_re
     rbd_images_filtered = [image for image in rbd_images_unfiltered if
                            re.match(image_re, image)]
-    logger.info('images after filtering by image_re "%s" are: %s' % (image_re,
-                                                                     ' '.join(rbd_images_filtered)))
+    logger.info('images after filtering by image_re /%s/ are: %s' % (image_re,
+        ' '.join(rbd_images_filtered)))
     # now check for snaps
     images_with_snaps = []
     images_without_snaps = []
@@ -92,8 +92,9 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
             images_with_snaps.append(image)
         else:
             images_without_snaps.append(image)
+    logger.info('images with snaps are: %s' % ' '.join(images_with_snaps))
     if images_without_snaps:
-        logger.warning('found %s images with no snaps' %
+        logger.warning('note, found %s images with no snaps' %
                        len(images_without_snaps))
     return images_with_snaps
 
