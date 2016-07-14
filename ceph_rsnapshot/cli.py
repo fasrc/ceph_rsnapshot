@@ -31,7 +31,10 @@ image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 # note using . in middle to tell rsnap where to base relative
 temp_path = '/tmp/qcows/./'
 
-STRING_SAFE_CHAR_RE = "[a-zA-Z0-9_-/\.]"
+# allowed characters in settigns strings here:
+# alphanumeric, forward slash / and literal . and _ and -
+# Note the - needs to be last in the re group
+STRING_SAFE_CHAR_RE = "[a-zA-Z0-9/\._-]"
 
 # FIXME validate pool name no spaces?
 # TODO FIXME add a timeout on the first ssh connection and error differently if the source is not responding
