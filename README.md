@@ -4,18 +4,17 @@ Scripts to backup ceph rbd images to qcow via rsnapshot.
 
 ## Usage
 
-Currently this script needs to be placed on both the source (ceph node) and the dest/backup node that will run rsnapshot.
+This script is to be installed on the backup node, and it will connect via ssh
+to the ceph node.
 
-On both nodes:
+Setup on the backup node:
 
     - create venv in /home/ceph_rsnapshot/venv with python 2.6 or 2.7 and source it
     - clone this repo into /home/ceph_rsnapshot/repo and pip install -e .
 
     - Set config file (if overriding anything) in /home/ceph_rsnapshot/config/ceph_rsnapshot.yaml
 
-On the backup (dest) node:
-
-    - Run /home/ceph_rsnapshot/venv/bin/ceph_rsnapshot to backup all ceph rbd images that match image_re and have snapshots from today to qcow on the backup node.
+    - Run /home/ceph_rsnapshot/venv/bin/ceph_rsnapshot to backup all ceph rbd images that match image_re and have snapshots from today's date to qcow on the backup node.
 
 ## Requirements
 
@@ -42,6 +41,8 @@ On the backup (dest) node:
     LOG_BASE_PATH
     LOG_FILENAME
     VERBOSE
+    NOOP
+    NO_ROTATE_ORPHANS
     IMAGE_RE                 # Regex to filter ceph rbd images to back up
     RETAIN_INTERVAL
     RETAIN_NUMBER
@@ -51,37 +52,37 @@ On the backup (dest) node:
 
 ## Entry points
 
-### source: gathernames
+### ceph_rsnapshot
 
-Generates a list of ceph images that have snapshots dated from today.
-
-### source: export_qcow
-
-Checks free space and then exports a given ceph rbd image to qcow in a temp directory.
-
-### source: remove_qcow
-
-Removes a qcow from temp directory.
-
-### dest: ceph_rsnapshot
-
-This will ssh to the ceph node ("source") and gather a list of vm images to backup (runs gathernames).  Then it will iterate over that list, connecting to the ceph node to export each one in turn to qcow in a temp directory (runs export qcow), and then running rsnapshot to backup that one qcow, then connecting again to the ceph node to remove the temp qcow (runs remove qcow).
+This will ssh to the ceph node ("source") and gather a list of vm images to backup (runs gathernames).  Then it will iterate over that list, connecting to the ceph node to export each one in turn to qcow in a temp directory, and then running rsnapshot to backup that one qcow, then connecting again to the ceph node to remove the temp qcow.
 
 VM backup images go into /<vm backup base path>/<pool>/<image name>/<daily.NN>/<image-name>.qcow2
 
-This will also rotate orphaned images (by running rsnap with an empty source), so they will roll off after retain_interval.
+This will also rotate orphaned images that no longer exist on the source (by running rsnap with an empty source), so they will roll off after retain_interval.
 
 Errors log to /var/log/ceph-rsnapshot and print to stdout.
 
 Parameters:
 
+    usage: ceph_rsnapshot [-h] [-c CONFIG] [--host HOST] [-p POOL]
+                          [--image_re IMAGE_RE] [-v] [--noop]
+                          [--no_rotate_orphans] [--printsettings] [-k]
+                          [-e EXTRALONGARGS]
+    
+    wrapper script to backup a ceph pool of rbd images to qcow
+    
     optional arguments:
       -h, --help            show this help message and exit
       -c CONFIG, --config CONFIG
                             path to alternate config file
       --host HOST           ceph node to backup from
       -p POOL, --pool POOL  ceph pool to back up
+      --image_re IMAGE_RE   RE to match images to back up
       -v, --verbose         verbose logging output
+      --noop                noop - don't make any directories or do any actions.
+                            logging only to stdout
+      --no_rotate_orphans   don't rotate the orphans on the dest
+      --printsettings       print out settings using and exit
       -k, --keepconf        keep conf files after run
       -e EXTRALONGARGS, --extralongargs EXTRALONGARGS
                             extra long args for rsync of format foo,bar for arg
@@ -89,4 +90,4 @@ Parameters:
 
 ## Platform
 
-Tested on CentOS 7
+Tested on CentOS 7 with python 2.7.5

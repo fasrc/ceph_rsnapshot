@@ -329,7 +329,7 @@ def get_current_settings():
         LOG_FILENAME=settings.LOG_FILENAME,
         VERBOSE=settings.VERBOSE,
         NOOP=settings.NOOP,
-        NO_ROTATE_ORPHANS=False,
+        NO_ROTATE_ORPHANS=settings.NO_ROTATE_ORPHANS,
         IMAGE_RE=settings.IMAGE_RE,
         RETAIN_INTERVAL=settings.RETAIN_INTERVAL,
         RETAIN_NUMBER=settings.RETAIN_NUMBER,

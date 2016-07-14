@@ -33,7 +33,14 @@ SETTINGS = dict(
     # TODO allow specifying alt path to a jinja template
     # TEMPLATE = '',
     VERBOSE=False,
+    # noop means don't make any changes to the system - no log dirs, no backup
+    # dirs, no actual exporting of qcows, etc. Logging goes to stdout only,
+    # this includes dumps of the rsnap config files
     NOOP=False,
+    # set this to true to suppress rotating orphans. useful if testing a backup
+    # on an artificially restrictive image_re and don't want to cycle the other
+    # backups
+    NO_ROTATE_ORPHANS=False,
     # opennebula images are one-NN
     # vms are one-NN-XX-YY for image NN vm XX and disk YY
     # images or vms are (with the additional accidental acceptance of one-NN-XX
