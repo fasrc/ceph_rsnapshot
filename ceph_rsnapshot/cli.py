@@ -13,7 +13,7 @@ from ceph_rsnapshot import logs
 from ceph_rsnapshot import settings
 from ceph_rsnapshot import templates
 from ceph_rsnapshot import dirs
-from ceph_rsnapshot.utils import ceph
+from ceph_rsnapshot import ceph
 
 # allowed characters in settings strings here:
 # alphanumeric, forward slash / and literal . and _ and -
