@@ -9,7 +9,8 @@ from ceph_rsnapshot import dirs
 from ceph_rsnapshot import settings
 
 
-def check_snap(image,snap='',pool='',cephhost='',cephuser='',cephcluster=''):
+def check_snap(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
+        snapnamingformat=''):
     """ ssh to ceph host and check for a snapshot
     """
     logger = logs.get_logger()
@@ -51,8 +52,6 @@ def gathernames(pool='',cephhost='',cephuser='',cephcluster='',
         format
     """
     logger = logs.get_logger()
-    if not snap:
-        snap = get_today()
     if not pool:
         pool = settings.POOL
     if not cephhost:
@@ -91,7 +90,7 @@ def gathernames(pool='',cephhost='',cephuser='',cephcluster='',
     # now check for snaps
     images_with_snaps=[]
     images_without_snaps=[]
-    for image in images_to_check:
+    for image in rbd_images_filtered:
       if check_snap(image):
         images_with_snaps.append(image)
       else:
@@ -205,8 +204,8 @@ def export_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
         raise NameError('not enough space to export this qcow')
 
     # build source and dest strings
-    qemu_source_string = "rbd:%s/%s@%s:id=%s:conf=/etc/ceph/%s.conf" %
-        (pool, image, snap, cephuser, cephcluster)
+    qemu_source_string = ("rbd:%s/%s@%s:id=%s:conf=/etc/ceph/%s.conf" %
+        (pool, image, snap, cephuser, cephcluster))
     qemu_dest_string = "%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH, pool, image)
     # do the export
     QEMU_IMG_COMMAND = ('qemu-img convert %s %s f=raw'
@@ -263,7 +262,7 @@ def remove_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
         if settings.NOOP:
             logger.info('NOOP: would have removed temp qcow for image %s from'
                 ' ceph host %s with command %s' % (image, cephhost,
-                SSH_RM_QCOW_COMAMND))
+                SSH_RM_QCOW_COMMAND))
         else:
             sh.ssh(cephhost, SSH_RM_QCOW_COMMAND)
     except sh.ErrorReturnCode as e:
