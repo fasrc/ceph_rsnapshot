@@ -83,6 +83,7 @@ def remove_conf(image, pool=''):
         logger.info('NOOP: would have removed conf file %s/%s/%s.conf' %
                     (settings.TEMP_CONF_DIR, pool, image))
     else:
+        logger.info('removing temp rsnap conf file for image %s' % image)
         os.remove('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
         # FIXME raise error if error
 
