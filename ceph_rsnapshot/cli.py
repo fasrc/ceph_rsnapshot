@@ -44,7 +44,7 @@ def get_names_on_dest(pool=''):
   return names_on_dest
 
 
-def rotate_orphans(pool=''):
+def rotate_orphans(orphans, pool=''):
   logger = logs.get_logger()
   if not pool:
     pool = settings.POOL
@@ -52,14 +52,13 @@ def rotate_orphans(pool=''):
 
   # now check for ophans on dest
   backup_path = "%s/%s" % (backup_base_path, pool)
-  orphans_on_dest = get_orphans_on_dest(pool=pool)
 
   orphans_rotated = []
   orphans_failed_to_rotate = []
 
   template = templates.get_template()
 
-  for orphan in orphans_on_dest:
+  for orphan in orphans:
     logger.info('orphan: %s' % orphan)
     try:
       dirs.make_empty_source() # do this every time to be sure it's empty
@@ -277,7 +276,7 @@ def rsnap_pool(pool):
       index = index + 1
 
   # {'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate}
-  orphan_result = rotate_orphans(pool)
+  orphan_result = rotate_orphans(orphans_on_dest, pool=pool)
 
   return({'successful': successful,
           'failed': failed,
