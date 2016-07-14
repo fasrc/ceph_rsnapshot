@@ -63,10 +63,10 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
     if not snapnamingformat:
         snapnamingformat = settings.SNAP_NAMING_DATE_FORMAT
     if not image_re:
-        imagere = settings.IMAGE_RE
+        image_re = settings.IMAGE_RE
     logger.info('getting list of images in pool %s that match image_re %s'
                 ' from ceph host %s cluster %s that have snaps matching date'
-                ' format %s' % (pool, imagere, cephhost, cephcluster, snapnamingformat))
+                ' format %s' % (pool, image_re, cephhost, cephcluster, snapnamingformat))
     # TODO use rbd user
     RBD_LS_COMMAND = ('rbd ls %s --cluster=%s --format=json' %
                       (pool, cephcluster))
