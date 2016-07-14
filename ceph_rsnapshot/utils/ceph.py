@@ -149,7 +149,7 @@ def get_rbd_size(image,snap='',pool='',cephhost='',cephuser='',cephcluster=''):
     if not cephcluster:
         cephcluster = settings.CEPH_CLUSTER
     rbd_image_string = "%s/%s@%s" % (pool, image, snap)
-    RBD_COMMAND = 'rbd du %s --user=%s --cluster=%s --format=json' % 
+    RBD_COMMAND = ('rbd du %s --user=%s --cluster=%s --format=json' %
             (rbd_image_string, cephuser, cephcluster))
     logger.info('getting rbd size from ceph host %s with command %s' % 
         cephhost, RBD_COMMAND))
