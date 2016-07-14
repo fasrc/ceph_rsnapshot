@@ -7,6 +7,7 @@ import re
 from ceph_rsnapshot import logs
 from ceph_rsnapshot import dirs
 from ceph_rsnapshot import settings
+from ceph_rsnapshot import helpers
 
 
 def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
@@ -84,6 +85,21 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
                            re.match(image_re, image)]
     logger.info('images after filtering by image_re /%s/ are: %s' % (image_re,
         ' '.join(rbd_images_filtered)))
+    # first sanitize names of images
+    bad_names=[]
+    for image in rbd_images_filtered:
+        try:
+            if helpers.validate_string(image):
+                continue
+        except NameError as e:
+            # bad character in a string, don't use this image
+            logger.warning('disallowed character in image name: %s'
+                ' error %s' % (image, e))
+            # take it out of the good array
+            rbd_images_filtered.remove(image)
+            bad_names.append(image)
+        except Exception as e:
+            raise
     # now check for snaps
     images_with_snaps = []
     images_without_snaps = []
@@ -96,6 +112,9 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
     if images_without_snaps:
         logger.warning('note, found %s images with no snaps' %
                        len(images_without_snaps))
+    if bad_names:
+        logger.warning('note, found %s images with bad names' %
+                       len(bad_names))
     return images_with_snaps
 
 
