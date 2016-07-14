@@ -287,7 +287,8 @@ def rsnap_pool(pool):
                     # store in array
                     successful.append(image)
                 else:
-                    logger.error('error on %s' % image)
+                    logger.error('error on %s : result: %s' %
+                                (image, result['status']))
                     # store dict in dict
                     failed[image] = result
             except Exception as e:
