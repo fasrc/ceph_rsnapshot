@@ -61,7 +61,7 @@ def rotate_orphans(orphans, pool=''):
     template = templates.get_template()
 
     for orphan in orphans:
-        logger.info('orphan: %s' % orphan)
+        logger.info('rotating orphan: %s' % orphan)
         try:
             dirs.make_empty_source()  # do this every time to be sure it's empty
         except NameError as e:

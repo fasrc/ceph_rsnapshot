@@ -59,11 +59,14 @@ def write_conf(image, pool='', source='', template=''):
         return '%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image)
     else:
         # conf file of the form /tmp_conf_dir/pool/imagename.conf
-        conf_file = open('%s/%s/%s.conf' %
+        try:
+            conf_file = open('%s/%s/%s.conf' %
                          (settings.TEMP_CONF_DIR, pool, image), 'w')
-        # FIXME raise error if error
-        conf_file.write(my_template)
-        # FIXME raise error if error
+            conf_file.write(my_template)
+        except Exception as e:
+            logger.error('error with temp conf file for orphan: %s error: %s' %
+                (image, e))
+            raise
     return conf_file.name
 
 # note using mkdtemp to make a tmep dir for these so not using mkstemp
