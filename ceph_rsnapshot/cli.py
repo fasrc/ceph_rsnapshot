@@ -240,7 +240,7 @@ def rsnap_pool(pool):
   # get list of images from source
   try:
     names_on_source = ceph.gathernames(pool=pool)
-  except:
+  except Exception as e:
     logger.error('cannot get names from source with error %s' % e)
     # fail out
     raise NameError('cannot get names on source, failing run')
@@ -248,12 +248,12 @@ def rsnap_pool(pool):
 
   # get list of images on backup dest already
   try:
-    names_on_dest_result=get_names_on_dest(pool = pool)
-  except:
+    names_on_dest=get_names_on_dest(pool = pool)
+  except Exception as e:
     logger.error('cannot get names from dest with error %s' % e)
     # fail out
     raise NameError('cannot get names on dest, failing run')
-  logger.info("names on dest: %s" % ",".join(names_on_dest_result))
+  logger.info("names on dest: %s" % ",".join(names_on_dest))
 
   # calculate difference
   orphans_on_dest = [image for image in names_on_dest if image not in names_on_source]
@@ -402,7 +402,7 @@ def ceph_rsnapshot():
   try:
     validate_settings_strings()
   except NameError as e:
-    logger.error('error with settings strings: %s' e)
+    logger.error('error with settings strings: %s' % e)
     sys.exit(1)
 
   # print out settings using and exit

@@ -2,6 +2,7 @@ from ceph_rsnapshot import settings, logs
 import os
 import sys
 import tempfile
+import sh
 
 
 def check_set_dir_perms(directory, perms=0o700):
@@ -184,7 +185,7 @@ def make_empty_source():
             else:
                 logger.info('creating temp empty source path %s' %
                     empty_source_path)
-                os.mkdir(temp_path, 0700)
+                os.mkdir(empty_source_path, 0700)
                 # TODO catch if error?
         else:
             raise

@@ -17,7 +17,7 @@ def setup_logging(stdout=True):
   sh_logger = logging.getLogger('sh.command')
 
   log_level = logging.INFO
-  if verbose == True:
+  if verbose:
     log_level = logging.DEBUG
 
   logger.setLevel(log_level)
