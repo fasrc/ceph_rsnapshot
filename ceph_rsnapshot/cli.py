@@ -1,44 +1,26 @@
 #!/usr/bin/env python
-
 import sh
-from sh import rsnapshot
-from sh import echo
-from sh import ssh
 import os
 import sys
-from string import Template
-
-import argparse, socket,time
+import argparse
+import socket
+import time
 import re
-
 import logging
 import json
-import base64
 
-# from ceph_rsnapshot.helpers import qcow
-# qcow.remove
-
-from ceph_rsnapshot.logs import setup_logging
 from ceph_rsnapshot import logs
-from ceph_rsnapshot.templates import remove_conf, write_conf, get_template
-# FIXME do imports this way not the above
-from ceph_rsnapshot import settings, templates, dirs
-
+from ceph_rsnapshot import settings
+from ceph_rsnapshot import templates
+from ceph_rsnapshot import dirs
 from ceph_rsnapshot.utils import ceph
 
-
-image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
-# note using . in middle to tell rsnap where to base relative
-temp_path = '/tmp/qcows/./'
-
-# allowed characters in settigns strings here:
+# allowed characters in settings strings here:
 # alphanumeric, forward slash / and literal . and _ and -
 # Note the - needs to be last in the re group
 STRING_SAFE_CHAR_RE = "[a-zA-Z0-9/\._-]"
 
-# FIXME validate pool name no spaces?
 # TODO FIXME add a timeout on the first ssh connection and error differently if the source is not responding
-
 
 def get_names_on_dest(pool=''):
   logger = logs.get_logger()
@@ -75,7 +57,7 @@ def rotate_orphans(pool=''):
   orphans_rotated = []
   orphans_failed_to_rotate = []
 
-  template = get_template()
+  template = templates.get_template()
 
   for orphan in orphans_on_dest:
     logger.info('orphan: %s' % orphan)
@@ -90,7 +72,7 @@ def rotate_orphans(pool=''):
     # note this uses temp_path on the dest - which we check to be empty
     # note also create path with . in it so rsync relative works
     source = "%s/empty_source/./" % settings.QCOW_TEMP_PATH
-    conf_file = write_conf(orphan,
+    conf_file = templates.write_conf(orphan,
                            pool = pool,
                            source = source,
                            template = template)
@@ -99,7 +81,7 @@ def rotate_orphans(pool=''):
       logger.info('NOOP: would have rotated orphan here using rsnapshot conf see previous lines')
     else:
       try:
-        rsnap_result = rsnapshot('-c','%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, orphan),settings.RETAIN_INTERVAL)
+        rsnap_result = sh.rsnapshot('-c','%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, orphan),settings.RETAIN_INTERVAL)
         # if ssuccessful, log
         if rsnap_result.stdout.strip("\n"):
           logger.info("successful; stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
@@ -111,7 +93,7 @@ def rotate_orphans(pool=''):
         logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     # unless flag to keep it for debug
     if not settings.KEEPCONF:
-      remove_conf(orphan,pool)
+      templates.remove_conf(orphan,pool)
 
   # TODO now check for any image dirs that are entirely empty and remove them (and the empty daily.NN inside them)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
@@ -135,7 +117,7 @@ def rsnap_image_sh(image,pool=''):
   else:
     try:
       ts=time.time()
-      rsnap_result = rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
+      rsnap_result = sh.rsnapshot('-c', rsnap_conf_file, settings.RETAIN_INTERVAL)
       tf=time.time()
       elapsed_time = tf-ts
       elapsed_time_ms = elapsed_time * 10**3
@@ -173,10 +155,10 @@ def rsnap_image(image, pool = '', template = None):
 
   # only reopen if we haven't pulled this yet - ie, are we part of a pool run
   if not template:
-    template = get_template()
+    template = templates.get_template()
 
   # create the temp conf file
-  conf_file = write_conf(image, pool = pool, template = template)
+  conf_file = templates.write_conf(image, pool = pool, template = template)
   logger.info(conf_file)
 
   # ssh to source and export temp qcow of this image
@@ -215,7 +197,7 @@ def rsnap_image(image, pool = '', template = None):
   # either way remove the temp conf file
   # unless flag to keep it for debug
   if not settings.KEEPCONF:
-    remove_conf(image, pool = pool)
+    templates.remove_conf(image, pool = pool)
 
   if export_qcow_ok and rsnap_ok and remove_qcow_ok:
     successful = True
@@ -264,7 +246,7 @@ def rsnap_pool(pool):
     logger.info("orphans on dest: %s" % ",".join(orphans_on_dest))
 
   # get template string for rsnap conf
-  template = get_template()
+  template = templates.get_template()
 
   successful = []
   failed = {}
@@ -378,7 +360,7 @@ def ceph_rsnapshot():
   else:
     settings.load_settings()
 
-  logger = setup_logging()
+  logger = logs.setup_logging()
   logger.info("launched with cli args: " + " ".join(sys.argv))
 
   # override global settings with cli args
