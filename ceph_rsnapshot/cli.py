@@ -280,16 +280,19 @@ def rsnap_pool(pool):
             logger.info('working on name %s of %s in pool %s: %s' %
                         (index, len_names, pool, image))
 
-            result = rsnap_image(image, pool=pool, template=template)
-
-            if result['successful']:
-                logger.info('successfully done with %s' % image)
-                # store in array
-                successful.append(image)
-            else:
-                logger.error('error on %s' % image)
-                # store dict in dict
-                failed[image] = result
+            try:
+                result = rsnap_image(image, pool=pool, template=template)
+                if result['successful']:
+                    logger.info('successfully done with %s' % image)
+                    # store in array
+                    successful.append(image)
+                else:
+                    logger.error('error on %s' % image)
+                    # store dict in dict
+                    failed[image] = result
+            except Exception as e:
+                logger.error('error with pool %s at image %s' % (pool, image))
+                logger.exception(e)
             # done with this image, increment counter
             index = index + 1
 
