@@ -1,0 +1,30 @@
+# ceph_rsnapshot config file for rsnapshot
+
+config_version	1.2
+cmd_cp		/bin/cp
+cmd_rm		/bin/rm
+cmd_rsync	/usr/bin/rsync
+cmd_logger	/usr/bin/logger
+cmd_du		/usr/bin/du
+cmd_rsnapshot_diff	/usr/bin/rsnapshot-diff
+cmd_ssh	/usr/bin/ssh
+ssh_args	-c arcfour
+verbose		1
+loglevel	4
+rsync_short_args	-aA
+rsync_long_args	--delete --numeric-ids --delete-excluded {{ extra_args }}
+
+#Target dir
+snapshot_root	{{ destination }}
+
+#How many to keep
+retain	{{ retain_interval }}	{{ retain_number }}
+
+#Log file
+logfile	{{ log_base_path }}/rsnap/{{pool}}/{{ nickname }}.log
+
+#Lockfile, must be unique, so backups don't collide but others can run
+lockfile	/var/run/rsnapshot_{{ pool }}_{{ nickname }}.pid
+
+#Source dir
+backup	{{ source }}	{{ subdir }}

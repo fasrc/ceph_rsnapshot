@@ -1,2 +1,5 @@
 # Puppet will install and/or update pip packages listed here
 sh==1.11
+PyYAML==3.11
+Jinja2==2.8
+argparse==1.4.0
