@@ -276,6 +276,23 @@ def rsnap_pool(pool):
         # sys.exit(1)
     else:
         for image in names_on_source:
+            # just to be safe, sanitize image names here too
+            try:
+                validate_string(image)
+            except NameError as e:
+                logger.error('bad character in image name %s: error %s' % 
+                    (image, e))
+                failed[image] = {'image': image,
+                    'pool': pool,
+                    'successful': False,
+                    'status': {
+                        'export_qcow_ok': False,
+                        'rsnap_ok': False,
+                        'remove_qcow_ok': False
+                    }
+                }
+                continue
+            # TODO catch other exceptions here?
             logger.info('working on name %s of %s in pool %s: %s' %
                         (index, len_names, pool, image))
 
@@ -339,6 +356,14 @@ def get_current_settings():
     ))
 
 
+def validate_string(string):
+    for char in string:
+        if not re.search(STRING_SAFE_CHAR_RE, char):
+            raise NameError('disallowed character (%s) in string: %s' % 
+                            (char, string))
+    return True
+
+
 def validate_settings_strings():
     """ check all settings strings to make sure they are only safe chars
         if not fail run
@@ -353,12 +378,15 @@ def validate_settings_strings():
         if type(value) in [bool, int]:
             # don't compare these to an RE
             continue
-        for char in value:
-            if not re.search(STRING_SAFE_CHAR_RE, char):
-                # bad character in a string, fail run
-                raise NameError('disallowed character (%s) in setting: %s value: %s' %
-                                (char, key, value))
-
+        try:
+            if validate_string(value):
+                continue
+        except NameError as e:
+            # bad character in a string, fail run
+            raise NameError('disallowed character in setting: %s'
+                ' error %s' % (key, e))
+        except Exception as e:
+            raise
 
 # if not cli then check env
 
