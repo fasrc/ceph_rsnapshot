@@ -67,10 +67,10 @@ def export_qcow_sh(image,pool,cephuser,cephcluster,snap=''):
     tf=time.time()
     elapsed_time = tf-ts
     elapsed_time_ms = elapsed_time * 10**3
-  except Exception as e:
+  except sh.ErrorReturnCode as e:
     logger.error("error exporting %s" % image)
     logger.error(e.stderr)
-    raise NameError('error_exporting_qcow')
+    raise NameError('error_exporting_qcow: %s' % e)
   return elapsed_time_ms
 
 def export_qcow():
@@ -111,13 +111,13 @@ def export_qcow():
   rbd_image_used_size = get_rbd_size(image, pool=settings.POOL, cephcluster=settings.CEPH_CLUSTER)
   logger.info("image size %s" % rbd_image_used_size)
   if rbd_image_used_size > ( avail_bytes - settings.MIN_FREESPACE ):
-    raise NameError, "not enough free space to export this qcow"
+    logger.error("not enough free space to export this qcow")
     sys.exit(1)
 
   # export qcow
   try:
     elapsed_time_ms=export_qcow_sh(image, pool=settings.POOL, cephuser=settings.CEPH_USER, cephcluster=settings.CEPH_CLUSTER)
     logger.info('image %s successfully exported in %sms' % (image, elapsed_time_ms))
-  except Exception as e:
+  except NameError as e:
     logger.error('error exporting image %s to qcow with error %s' % (image, e))
     sys.exit(1)

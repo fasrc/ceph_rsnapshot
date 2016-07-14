@@ -56,7 +56,7 @@ def get_names_on_source(pool=''):
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
     logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
     # FIXME raise error to main loop
-    raise NameError(e)
+    raise NameError('get names on source failed with error: %s ' % e)
   names_on_source = names_on_source_result.strip("\n").split("\n")
 
   return names_on_source
@@ -80,11 +80,13 @@ def get_names_on_dest(pool=''):
       logger.info('NOOP: would have listed vms in directory %s' % backup_path )
       return []
     logger.error(e)
-    raise NameError('get_names_on_dest failed')
+    raise NameError('get_names_on_dest failed with error %s' % e)
   # FIXME cehck error
   return names_on_dest
 
 # FIXME use same list of names on source
+# UPDATE this is not used anymore. including in one last git commit for
+# error handling tracking
 def get_orphans_on_dest(pool=''):
   logger = logs.get_logger()
   if not pool:
@@ -94,8 +96,21 @@ def get_orphans_on_dest(pool=''):
   # get logger we setup earlier
   logger = logging.getLogger('ceph_rsnapshot')
   backup_path = "%s/%s" % (backup_base_path, pool)
-  names_on_dest = get_names_on_dest(pool=pool)
-  names_on_source = get_names_on_source(pool=pool)
+  try:
+    names_on_dest = get_names_on_dest(pool=pool)
+  except NameError as e:
+    logger.error('cannot get names on dest with error: %s' % e)
+    # TODO what to do here? continue? retry?
+    # if this errored, something is wrong with the backup directory. even if
+    # it's empty this should have returned []
+    # so fail run
+    raise NameError('cannot get names on dest, failing run')
+  try:
+    names_on_source = get_names_on_source(pool=pool)
+  except:
+    logger.error('cannot get names from source with error %s' % e)
+    # fail out
+    raise NameError('cannot get names on source, failing run')
   orphans_on_dest = list(set(names_on_dest) - set(names_on_source))
   return orphans_on_dest
 
@@ -119,7 +134,14 @@ def rotate_orphans(pool=''):
 
   for orphan in orphans_on_dest:
     logger.info('orphan: %s' % orphan)
-    dirs.make_empty_source() # do this every time to be sure it's empty
+    try:
+      dirs.make_empty_source() # do this every time to be sure it's empty
+    except NameError as e:
+      logger.error('error with creating or verifying temp empty source,'
+        ' cannot rotate orphans. error: ' % e)
+      # fail out
+      return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate':
+        [orphan for orphan in orphans_on_dest if orphan not in orphans_rotated]})
     # note this uses temp_path on the dest - which we check to be empty
     # note also create path with . in it so rsync relative works
     source = "%s/empty_source/./" % settings.QCOW_TEMP_PATH
@@ -137,7 +159,7 @@ def rotate_orphans(pool=''):
         if rsnap_result.stdout.strip("\n"):
           logger.info("successful; stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
         orphans_rotated.append(orphan)
-      except Exception as e:
+      except sh.ErrorReturnCode as e:
         orphans_failed_to_rotate.append(orphan)
         logger.error("failed to rotate orphan %s with code %s" % (orphan, e.exit_code))
         logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
@@ -172,6 +194,9 @@ def export_qcow(image,pool=''):
     logger.error("failed to export qcow %s with code %s" % (image, e.exit_code))
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
     logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
+  except Exception as e:
+    # TODO
+    logger.exception(e)
   return export_qcow_ok
 
 def rsnap_image_sh(image,pool=''):
@@ -199,7 +224,7 @@ def rsnap_image_sh(image,pool=''):
       if rsnap_result.stdout.strip("\n"):
         logger.info("stdout from rsnap:\n"+rsnap_result.stdout.strip("\n"))
     # TODO handle only rsnap sh exception
-    except Exception as e:
+    except sh.ErrorReturnCode as e:
       logger.error("failed to rsnap %s with code %s" % (image, e.exit_code))
       # TODO move log formatting and writing to a function
       logger.error("stdout from rsnap:\n"+e.stdout.strip("\n"))
@@ -213,12 +238,13 @@ def remove_qcow(image,pool=''):
     pool = settings.POOL
   logger.info('going to remove temp qcow for image %s pool %s' % (image, pool))
   try:
+    noopstring=''
     if settings.NOOP:
       noopstring=' --noop'
     remove_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/remove_qcow %s --pool %s %s' % (image, pool, noopstring))
     remove_qcow_ok = True
     logger.info("stdout from source node:\n"+remove_result.stdout.strip("\n"))
-  except Exception as e:
+  except sh.ErrorReturnCode as e:
     logger.error(e)
     logger.error("failed to remove qcow %s with code %s" % (image, e.exit_code))
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
@@ -295,17 +321,25 @@ def rsnap_pool(pool):
   logger.debug("starting rsnap of ceph pool %s to qcows in %s/%s" % (pool, settings.BACKUP_BASE_PATH, pool))
 
   # get list of images from source
-  names_on_source = get_names_on_source(pool=pool)
-  # TODO handle errors here
+  try:
+    names_on_source = get_names_on_source(pool=pool)
+  except:
+    logger.error('cannot get names from source with error %s' % e)
+    # fail out
+    raise NameError('cannot get names on source, failing run')
   logger.info("names on source: %s" % ",".join(names_on_source))
 
   # get list of images on backup dest already
-  names_on_dest_result=get_names_on_dest(pool = pool)
+  try:
+    names_on_dest_result=get_names_on_dest(pool = pool)
+  except:
+    logger.error('cannot get names from dest with error %s' % e)
+    # fail out
+    raise NameError('cannot get names on dest, failing run')
   logger.info("names on dest: %s" % ",".join(names_on_dest_result))
 
   # calculate difference
-  # FIXME use the above lists
-  orphans_on_dest = get_orphans_on_dest(pool = pool)
+  orphans_on_dest = [image for image in names_on_dest if image not in names_on_source]
   if orphans_on_dest:
     logger.info("orphans on dest: %s" % ",".join(orphans_on_dest))
 
@@ -463,7 +497,13 @@ def ceph_rsnapshot():
     dirs.setup_backup_dirs()
     dirs.setup_log_dirs()
 
-    result = rsnap_pool(pool)
+    try:
+      result = rsnap_pool(pool)
+    except NameError as e:
+      # TODO get some way to still have the list of images that it completed
+      # before failing
+      logger.error('rsnap pool %s failed error: %s' % (pool, e))
+      raise
 
     if not settings.KEEPCONF:
       dirs.remove_temp_conf_dir()
@@ -485,14 +525,15 @@ def ceph_rsnapshot():
     logger.info("removing lockfile at %s" % pidfile)
     os.unlink(pidfile)
 
-  if settings.NOOP:
-    logger.info("end of NOOP run")
+    if settings.NOOP:
+      logger.info("end of NOOP run")
 
-  if result['failed']:
-    sys.exit(1)
-  elif result['orphans_failed_to_rotate']:
-    sys.exit(2)
-  else:
-    sys.exit(0)
+    # TODO should these still sys.exit or should they let the exceptions go?
+    if result['failed']:
+      sys.exit(1)
+    elif result['orphans_failed_to_rotate']:
+      sys.exit(2)
+    else:
+      sys.exit(0)
 
-
+# Nothing else down here - it all goes in the finally

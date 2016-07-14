@@ -124,20 +124,28 @@ def setup_qcow_temp_path(pool=''):
 
 
 def make_empty_source():
-    temp_path = "%s/empty_source/" % settings.QCOW_TEMP_PATH
+    # TODO make this use mkdtemp
+    empty_source_path = "%s/empty_source/" % settings.QCOW_TEMP_PATH
     # get logger we setup earlier
     logger = logs.get_logger()
     try:
-        dirlist = os.listdir(temp_path)
+        dirlist = os.listdir(empty_source_path)
         if len(dirlist) != 0:
-            raise NameError('temp_path_not_empty')
-    except:
-        if settings.NOOP:
-            logger.info(
-                'NOOP: would have made temp empty source at %s' % temp_path)
+            raise NameError('ERROR: empty_source_path %s exists and is not'
+                ' empty' % empty_source_path)
+    except OSError as e:
+        if e.errno == 2:
+            # OSError 2 is No such file or directory, so make it
+            if settings.NOOP:
+                logger.info('NOOP: would have made temp empty source at %s' %
+                    empty_source_path)
+            else:
+                logger.info('creating temp empty source path %s' %
+                    empty_source_path)
+                os.mkdir(temp_path, 0700)
+                # TODO catch if error?
         else:
-            os.mkdir(temp_path, 0700)
-        # TODO catch if error
+            raise
 
 
 def setup_dir(directory):
@@ -176,5 +184,5 @@ def remove_temp_conf_dir():
                 # TODO all pools
                 os.rmdir("%s/%s" % (settings.TEMP_CONF_DIR, settings.POOL))
                 os.rmdir(settings.TEMP_CONF_DIR)
-        except Exception as e:
+        except (IOError, OSError) as e:
             logger.warning("unable to remove temp conf dir with error %s" % e)

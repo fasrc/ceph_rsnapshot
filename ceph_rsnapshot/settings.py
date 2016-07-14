@@ -45,7 +45,7 @@ SETTINGS = dict(
   # TODO use this everywhere instead of date --iso
   SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',
   # min freespace to leave on ceph node for exporting qcow temporarily
-  MIN_FREESPACE = 100*1024*1024, # 100mb
+  MIN_FREESPACE = 5*1024*1024*1024, # 5GB
   SH_LOGGING=False,
 
 )

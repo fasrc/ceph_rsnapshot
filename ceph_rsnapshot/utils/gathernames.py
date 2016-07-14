@@ -23,9 +23,9 @@ def list_pool(pool,image_re=''):
     image_re = settings.IMAGE_RE
   try:
     rbd_ls_result = rbd.ls(pool,cluster=settings.CEPH_CLUSTER,format='json')
-  except Exception as e:
-    logger.error(e)
-    raise NameError
+  except sh.ErrorReturnCode as e:
+    logger.error('error getting list of images from source %s' % e)
+    raise NameError('error getting list of images from source')
   rbd_images_unfiltered = json.loads(rbd_ls_result.stdout)
   if not settings.NOOP:
     logger.info('all images: %s' % ' '.join(rbd_images_unfiltered))
@@ -55,7 +55,7 @@ def check_snap(image,pool='',snap=''):
     rbd_check_result = rbd.info('%s/%s@%s' % (pool, image, snap),cluster=settings.CEPH_CLUSTER)
     if not settings.NOOP:
       logger.info('found snap for image %s/%s' % (pool, image))
-  except Exception as e:
+  except sh.ErrorReturnCode as e:
     if not settings.NOOP:
       logger.warning('no snap found for image %s/%s' % (pool, image))
     # for now just take any error and say it doesn't have a snap
@@ -93,7 +93,11 @@ def gathernames():
   if not settings.NOOP:
     logger = logs.setup_logging(stdout=False)
     logger.info('gathernames starting checking for images in pool %s on cluster %s' %(settings.POOL, settings.CEPH_CLUSTER))
-  images_to_check = list_pool(settings.POOL)
+  try:
+    images_to_check = list_pool(settings.POOL)
+  except NameError as e:
+    logger.error('error listing pool with error %s' %s)
+    sys.exit(1)
   images_with_snaps=[]
   images_without_snaps=[]
   for image in images_to_check:

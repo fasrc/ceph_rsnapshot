@@ -30,14 +30,14 @@ def remove_qcow():
   logger = logs.setup_logging()
 
   logger.info("deleting temp qcow for image %s from pool %s " % (image, settings.POOL))
-
+  temp_qcow_file = "%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH, settings.POOL, image)
   try:
     if settings.NOOP:
       logger.info('NOOP: would have removed temp qcow %s/%s/%s.qcow2' % (settings.QCOW_TEMP_PATH, settings.POOL, image))
     else:
-      os.remove("%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH, settings.POOL, image))
-  except Exception as e:
-    logger.error(e.stdout)
-    logger.error(e.stderr)
-    raise NameError, e
+      os.remove(temp_qcow_file)
+  except (OSError, IOError) as e:
+    logger.error('error removing temp qcow %s' % temp_qcow_file)
+    logger.error(e)
+    sys.exit(1)
   logger.info("successfully removed qcow for %s" % image)
