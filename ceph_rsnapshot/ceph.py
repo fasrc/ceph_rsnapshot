@@ -27,9 +27,8 @@ def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''
         cephuser = settings.CEPH_USER
     if not cephcluster:
         cephcluster = settings.CEPH_CLUSTER
-    # TODO use user
-    RBD_CHECK_SNAP_COMMAND = ('rbd info %s/%s@%s --cluster %s' %
-                              (pool, image, snap, cephcluster))
+    RBD_CHECK_SNAP_COMMAND = ('rbd info %s/%s@%s --id=%s --cluster=%s' %
+                              (pool, image, snap, cephuser, cephcluster))
     logger.info('checking for snap with command %s' % RBD_CHECK_SNAP_COMMAND)
     try:
         rbd_check_result = sh.ssh(cephhost, RBD_CHECK_SNAP_COMMAND)
@@ -64,12 +63,10 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
         snapnamingformat = settings.SNAP_NAMING_DATE_FORMAT
     if not image_re:
         image_re = settings.IMAGE_RE
-    logger.info('getting list of images in pool %s that match image_re %s'
-                ' from ceph host %s cluster %s that have snaps matching date'
-                ' format %s' % (pool, image_re, cephhost, cephcluster, snapnamingformat))
-    # TODO use rbd user
-    RBD_LS_COMMAND = ('rbd ls %s --cluster=%s --format=json' %
-                      (pool, cephcluster))
+    RBD_LS_COMMAND = ('rbd ls %s --id=%s --cluster=%s --format=json' %
+                      (pool, cephuser, cephcluster))
+    logger.info('sshing to %s and running %s to get list of images' %
+        (cephhost,RBD_LS_COMMAND))
     try:
         rbd_ls_result = sh.ssh(cephhost, RBD_LS_COMMAND)
     except sh.ErrorReturnCode as e:
@@ -192,7 +189,8 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     if not noop:
         noop = settings.NOOP
     logger.info('exporting image %s@%s from pool %s on ceph host %s cluster %s'
-                ' as user %s' % (image, snap, pool, cephhost, cephuser, cephcluster))
+                ' as user %s' % (image, snap, pool, cephhost, cephcluster,
+                cephuser))
 
     # if any of these errors, fail this export and raise the errors up
     dirs.setup_qcow_temp_path(settings.POOL)
