@@ -1,5 +1,9 @@
 # helper functions
 
+import re
+
+from ceph_rsnapshot import settings
+
 
 # allowed characters in settings strings here:
 # alphanumeric, forward slash / and literal . and _ and -
