@@ -122,7 +122,7 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
     CHMOD_COMMAND = 'chmod 700 %s' % temp_path
     try:
         ls_result = sh.ssh(cephhost, LS_COMMAND)
-    except sh.ReturnErrorCode as e:
+    except sh.ErrorReturnCode as e:
         if e.errno == 2:
             # ls returns 2 for no such dir, this is OK, just make it
             try:
@@ -132,7 +132,7 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
                 else:
                     sh.ssh(cephhost, MKDIR_COMMAND)
                     sh.ssh(cephhost, CHMOD_COMMAND)
-            except sh.ReturnErrorCode as e:
+            except sh.ErrorReturnCode as e:
                 logger.error('error making or chmodding qcow temp dir:')
                 logger.exception(e.stderr)
                 raise
@@ -153,7 +153,7 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
     # now just to be safe verify perms on it are 700
     try:
         sh.ssh(cephhost, CHMOD_COMMAND)
-    except sh.ReturnErrorCode as e:
+    except sh.ErrorReturnCode as e:
         logger.error('error chmodding qcow temp dir:')
         logger.exception(e.stderr)
         raise
