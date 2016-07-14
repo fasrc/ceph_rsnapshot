@@ -505,11 +505,14 @@ def ceph_rsnapshot():
 
         # TODO should these still sys.exit or should they let the exceptions
         # go?
-        if result['failed']:
-            sys.exit(1)
-        elif result['orphans_failed_to_rotate']:
-            sys.exit(2)
+        if result:
+            if result['failed']:
+                sys.exit(1)
+            elif result['orphans_failed_to_rotate']:
+                sys.exit(2)
+            else:
+                sys.exit(0)
         else:
-            sys.exit(0)
+            exit(3)
 
 # Nothing else down here - it all goes in the finally
