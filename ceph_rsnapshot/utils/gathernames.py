@@ -8,6 +8,7 @@ import re
 import argparse
 import json
 import os, sys, socket, logging
+import base64
 
 from ceph_rsnapshot import logs
 from ceph_rsnapshot import settings
@@ -65,6 +66,8 @@ def gathernames():
   parser = argparse.ArgumentParser(description='Gather a list of rbd images in a given pool with snaps from today',
                                    argument_default=argparse.SUPPRESS)
   parser.add_argument('--pool', required=False, help='ceph pool to get list of rbd images for')
+  parser.add_argument('--imagere', required=False, help='RE to match images to back up')
+  parser.add_argument('--imagerebase64', required=False, help='base64 encoded image_re, if present overrides the above --imagere')
   parser.add_argument("--noop", action='store_true',required=False, help="noop - don't make any directories or do any actions. logging only to stdout")
   # parser.add_argument('image')
   # parser.add_argument('--sum', dest='accumulate', action='store_const',
@@ -78,6 +81,12 @@ def gathernames():
     settings.POOL = args.pool
   if args.__contains__('noop'):
     settings.NOOP = args.noop
+  if args.__contains__('imagere'):
+    settings.IMAGE_RE = args.imagere
+  # if imagerebase64 is specified, override the one from imagere
+  if args.__contains__('imagerebase64'):
+    settings.IMAGE_RE = base64.decodestring(args.imagerebase64)
+
 
   # can't log to stdout until TODO pass json back to rsnapshot node 
   # so don't log if noop - if noop can't write to file either

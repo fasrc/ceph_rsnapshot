@@ -13,6 +13,7 @@ import re
 
 import logging
 import json
+import base64
 
 # from ceph_rsnapshot.helpers import qcow
 # qcow.remove
@@ -41,9 +42,15 @@ def get_names_on_source(pool=''):
     noopstring=''
     if settings.NOOP:
       noopstring='--noop'
-    names_on_source_result = sh.ssh(host,'/home/ceph_rsnapshot/venv/bin/gathernames --pool "%s" %s' % (pool, noopstring))
+    # now escape image_re to send
+    # TODO NOTE this will now override any settings.IMAGE_RE specified
+    # in yaml  config on the ceph node
+    imagerebase64 = base64.encodestring(settings.IMAGE_RE).strip("\n")
+    names_on_source_result = sh.ssh(host,
+      '/home/ceph_rsnapshot/venv/bin/gathernames --pool "%s" --imagerebase64 %s'
+      ' %s' % (pool, imagerebase64, noopstring))
     logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
-  except Exception as e:
+  except sh.ErrorReturnCode as e:
     logger.error(e)
     logger.error('getting names failed with exit code: %s' % e.exit_code)
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
@@ -151,13 +158,16 @@ def export_qcow(image,pool=''):
   # get logger we setup earlier
   logger.info("exporting %s" % image)
   try:
+    noopstring=''
     if settings.NOOP:
       noopstring='--noop'
     logger.info("ceph host %s" % settings.CEPH_HOST)
-    export_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/export_qcow %s --pool %s --cephuser %s --cephcluster %s %s' % (image, pool, cephuser, cephcluster, noopstring))
+    export_result = ssh(settings.CEPH_HOST,
+      '/home/ceph_rsnapshot/venv/bin/export_qcow %s --pool %s --cephuser %s'
+      ' --cephcluster %s %s' % (image, pool, cephuser, cephcluster, noopstring))
     export_qcow_ok = True
     logger.info("stdout from source node:\n"+export_result.stdout.strip("\n"))
-  except Exception as e:
+  except sh.ErrorReturnCode as e:
     export_qcow_ok = False
     logger.error("failed to export qcow %s with code %s" % (image, e.exit_code))
     logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
@@ -375,6 +385,7 @@ def ceph_rsnapshot():
   parser.add_argument("-c", "--config", required=False, help="path to alternate config file")
   parser.add_argument("--host", required=False, help="ceph node to backup from")
   parser.add_argument('-p', '--pool', help='ceph pool to back up', required=False)
+  parser.add_argument('--imagere', required=False, help='RE to match images to back up')
   parser.add_argument("-v", "--verbose", action='store_true',required=False, help="verbose logging output")
   parser.add_argument("--noop", action='store_true',required=False, help="noop - don't make any directories or do any actions. logging only to stdout")
   parser.add_argument("--printsettings", action='store_true',required=False, help="print out settings using and exit")
@@ -413,6 +424,8 @@ def ceph_rsnapshot():
     settings.EXTRA_ARGS = ' '.join(['--'+x for x in args.extralongargs.split(',')])
     # FIXME not working correctly
   # image_filter = args.image_filter
+  if args.__contains__('imagere'):
+    settings.IMAGE_RE = args.imagere
 
   # print out settings using and exit
   if args.__contains__('printsettings'):
