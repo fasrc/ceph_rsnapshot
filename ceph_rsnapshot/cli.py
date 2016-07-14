@@ -471,6 +471,9 @@ def ceph_rsnapshot():
         dirs.setup_backup_dirs()
         dirs.setup_log_dirs()
 
+        # clear this so we know if run worked or not
+        result=''
+
         try:
             # TODO pass args here instead of in settings?
             result = rsnap_pool(pool)
