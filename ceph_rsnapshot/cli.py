@@ -3,7 +3,6 @@ import sh
 import os
 import sys
 import argparse
-import socket
 import time
 import re
 import logging
