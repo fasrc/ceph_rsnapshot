@@ -1,6 +1,6 @@
 # Ceph-rsnapshot
 
-Scripts to backup ceph rbd images to qcow via rsnapshot.
+Scripts to backup ceph rbd images to qcow via rsnapshot. Tunable image selection with a regex (current default setup for opennebula vm root disks and base images).
 
 ## Usage
 
@@ -56,11 +56,11 @@ Setup on the backup node:
 
 This will ssh to the ceph node ("source") and gather a list of vm images to backup (runs gathernames).  Then it will iterate over that list, connecting to the ceph node to export each one in turn to qcow in a temp directory, and then running rsnapshot to backup that one qcow, then connecting again to the ceph node to remove the temp qcow.
 
-VM backup images go into /<vm backup base path>/<pool>/<image name>/<daily.NN>/<image-name>.qcow2
+The qcow images go into (on the backup node): <BACKUP_BASE_PATH>/<POOL>/<image-name>/<daily.NN>/<image-name>.qcow2
 
-This will also rotate orphaned images that no longer exist on the source (by running rsnap with an empty source), so they will roll off after retain_interval.
+This script will also rotate orphaned images that no longer exist on the source (by running rsnap with an empty source), so they will roll off after retain_interval.
 
-Errors log to /var/log/ceph-rsnapshot and print to stdout.
+Errors log to /var/log/ceph-rsnapshot/ (or LOG_BASE_PATH) and print to stdout.
 
 Parameters:
 
