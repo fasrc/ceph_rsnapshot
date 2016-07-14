@@ -233,6 +233,7 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
                      ' output from ssh:' % (cephhost, QEMU_IMG_COMMAND))
         logger.exception(e)
         raise
+    logger.info('qcow exported in %s ms' % elapsed_time_ms)
     return elapsed_time_ms
 
 
@@ -258,7 +259,7 @@ def remove_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     temp_qcow_file = ("%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH,
                                           settings.POOL, image))
     logger.info("deleting temp qcow from path %s on ceph host %s" %
-                (image, settings.POOL))
+                (image, cephhost))
     SSH_RM_QCOW_COMMAND = 'rm %s' % temp_qcow_file
     try:
         if settings.NOOP:
@@ -278,3 +279,4 @@ def remove_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
         logger.exception(e)
         raise
     logger.info("successfully removed qcow for %s" % image)
+    return True
