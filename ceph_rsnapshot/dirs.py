@@ -123,7 +123,7 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
     try:
         ls_result = sh.ssh(cephhost, LS_COMMAND)
     except sh.ErrorReturnCode as e:
-        if e.errno == 2:
+        if e.exit_code == 2:
             # ls returns 2 for no such dir, this is OK, just make it
             try:
                 if noop:
