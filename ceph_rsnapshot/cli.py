@@ -24,43 +24,17 @@ from ceph_rsnapshot.templates import remove_conf, write_conf, get_template
 # FIXME do imports this way not the above
 from ceph_rsnapshot import settings, templates, dirs
 
+from ceph_rsnapshot.utils import ceph
+
 
 image_re = r'^one\(-[0-9]\+\)\{1,2\}$'
 # note using . in middle to tell rsnap where to base relative
 temp_path = '/tmp/qcows/./'
 
-def get_names_on_source(pool=''):
-  logger = logs.get_logger()
-  if not pool:
-    pool = settings.POOL
-  host = settings.CEPH_HOST
-  # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
-  # FIXME validate pool name no spaces?
-  try:
-    # TODO FIXME add a timeout here or the first connection and error differently if the source is not responding
-    noopstring=''
-    if settings.NOOP:
-      noopstring='--noop'
-    # now escape image_re to send
-    # TODO NOTE this will now override any settings.IMAGE_RE specified
-    # in yaml  config on the ceph node
-    imagerebase64 = base64.encodestring(settings.IMAGE_RE).strip("\n")
-    names_on_source_result = sh.ssh(host,
-      '/home/ceph_rsnapshot/venv/bin/gathernames --pool "%s" --imagerebase64 %s'
-      ' %s' % (pool, imagerebase64, noopstring))
-    logger.info("log output from source node:\n"+names_on_source_result.stderr.strip("\n"))
-  except sh.ErrorReturnCode as e:
-    logger.error(e)
-    logger.error('getting names failed with exit code: %s' % e.exit_code)
-    logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
-    logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
-    # FIXME raise error to main loop
-    raise NameError('get names on source failed with error: %s ' % e)
-  names_on_source = names_on_source_result.strip("\n").split("\n")
+STRING_SAFE_CHAR_RE = "[a-zA-Z0-9_-/\.]"
 
-  return names_on_source
-
+# FIXME validate pool name no spaces?
+# TODO FIXME add a timeout on the first ssh connection and error differently if the source is not responding
 
 
 def get_names_on_dest(pool=''):
@@ -83,38 +57,6 @@ def get_names_on_dest(pool=''):
     raise NameError('get_names_on_dest failed with error %s' % e)
   # FIXME cehck error
   return names_on_dest
-
-# FIXME use same list of names on source
-# UPDATE this is not used anymore. including in one last git commit for
-# error handling tracking
-def get_orphans_on_dest(pool=''):
-  logger = logs.get_logger()
-  if not pool:
-    pool = settings.POOL
-  backup_base_path = settings.BACKUP_BASE_PATH
-  host = settings.CEPH_HOST
-  # get logger we setup earlier
-  logger = logging.getLogger('ceph_rsnapshot')
-  backup_path = "%s/%s" % (backup_base_path, pool)
-  try:
-    names_on_dest = get_names_on_dest(pool=pool)
-  except NameError as e:
-    logger.error('cannot get names on dest with error: %s' % e)
-    # TODO what to do here? continue? retry?
-    # if this errored, something is wrong with the backup directory. even if
-    # it's empty this should have returned []
-    # so fail run
-    raise NameError('cannot get names on dest, failing run')
-  try:
-    names_on_source = get_names_on_source(pool=pool)
-  except:
-    logger.error('cannot get names from source with error %s' % e)
-    # fail out
-    raise NameError('cannot get names on source, failing run')
-  orphans_on_dest = list(set(names_on_dest) - set(names_on_source))
-  return orphans_on_dest
-
-
 
 
 def rotate_orphans(pool=''):
@@ -171,33 +113,8 @@ def rotate_orphans(pool=''):
   # TODO now check for any image dirs that are entirely empty and remove them (and the empty daily.NN inside them)
   return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate})
 
-def export_qcow(image,pool=''):
-  logger = logs.get_logger()
-  if not pool:
-    pool = settings.POOL
-  cephuser = settings.CEPH_USER
-  cephcluster = settings.CEPH_CLUSTER
-  # get logger we setup earlier
-  logger.info("exporting %s" % image)
-  try:
-    noopstring=''
-    if settings.NOOP:
-      noopstring='--noop'
-    logger.info("ceph host %s" % settings.CEPH_HOST)
-    export_result = ssh(settings.CEPH_HOST,
-      '/home/ceph_rsnapshot/venv/bin/export_qcow %s --pool %s --cephuser %s'
-      ' --cephcluster %s %s' % (image, pool, cephuser, cephcluster, noopstring))
-    export_qcow_ok = True
-    logger.info("stdout from source node:\n"+export_result.stdout.strip("\n"))
-  except sh.ErrorReturnCode as e:
-    export_qcow_ok = False
-    logger.error("failed to export qcow %s with code %s" % (image, e.exit_code))
-    logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
-    logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
-  except Exception as e:
-    # TODO
-    logger.exception(e)
-  return export_qcow_ok
+
+
 
 def rsnap_image_sh(image,pool=''):
   logger = logs.get_logger()
@@ -232,25 +149,6 @@ def rsnap_image_sh(image,pool=''):
       rsnap_ok = False
   return rsnap_ok
 
-def remove_qcow(image,pool=''):
-  logger = logs.get_logger()
-  if not pool:
-    pool = settings.POOL
-  logger.info('going to remove temp qcow for image %s pool %s' % (image, pool))
-  try:
-    noopstring=''
-    if settings.NOOP:
-      noopstring=' --noop'
-    remove_result = ssh(settings.CEPH_HOST,'/home/ceph_rsnapshot/venv/bin/remove_qcow %s --pool %s %s' % (image, pool, noopstring))
-    remove_qcow_ok = True
-    logger.info("stdout from source node:\n"+remove_result.stdout.strip("\n"))
-  except sh.ErrorReturnCode as e:
-    logger.error(e)
-    logger.error("failed to remove qcow %s with code %s" % (image, e.exit_code))
-    logger.error("stdout from source node:\n"+e.stdout.strip("\n"))
-    logger.error("stderr from source node:\n"+e.stderr.strip("\n"))
-    remove_qcow_ok = False
-  return remove_qcow_ok
 
 def rsnap_image(image, pool = '', template = None):
   if not pool:
@@ -279,17 +177,36 @@ def rsnap_image(image, pool = '', template = None):
   logger.info(conf_file)
 
   # ssh to source and export temp qcow of this image
-  export_qcow_ok = export_qcow(image, pool = pool)
+  try:
+    ceph.export_qcow(image, pool=pool)
+    export_qcow_ok = True
+  except NameError as e:
+    # probably not enough space. set to false and try to go and remove this
+    # one, or go to next image in case it was temporary
+    logger.error('error from export qcow: %s' % e)
+    export_qcow_ok = False
+  except Exception as e:
+    logger.error('error from export qcow')
+    export_qcow_ok = False
 
   # if exported ok, then rsnap this image
   if export_qcow_ok:
-    rsnap_ok = rsnap_image_sh(image, pool = pool)
+    try:
+      rsnap_ok = rsnap_image_sh(image, pool = pool)
+    except Exception as e:
+      # TODO 
+      logger.error('error with rsnapping image %s' % image)
   else:
     logger.error("skipping rsnap of image %s because export to qcow failed" % image)
 
   # either way remove the temp qcow
   logger.info("removing temp qcow for %s" % image)
-  remove_qcow_ok = remove_qcow(image, pool= pool)
+  try:
+    remove_qcow_ok = ceph.remove_qcow(image, pool=pool)
+  except Exception as e:
+    logger.error('error removing qcow. will continue to next image anyways,'
+      ' note that we check for free space so wont entirely fill disk if they'
+      ' all fail')
   # TODO catch error if its already gone and move forward
 
   # either way remove the temp conf file
@@ -322,7 +239,7 @@ def rsnap_pool(pool):
 
   # get list of images from source
   try:
-    names_on_source = get_names_on_source(pool=pool)
+    names_on_source = ceph.gathernames(pool=pool)
   except:
     logger.error('cannot get names from source with error %s' % e)
     # fail out
@@ -409,6 +326,27 @@ def get_current_settings():
   ))
 
 
+def validate_settings_strings():
+  """ check all settings strings to make sure they are only safe chars
+      if not fail run
+  """
+  # check strings are safe
+  current_settings = get_current_settings()
+  for key in current_settings:
+    if key in [ 'IMAGE_RE', 'SNAP_NAMING_DATE_FORMAT']:
+      # these are allowed to have weird characters
+      continue
+    value = current_settings[key]
+    if type(value) in [ bool, int ]:
+      # don't compare these to an RE
+      continue
+    for char in value:
+      if not re.search(STRING_SAFE_CHAR_RE, char):
+        # bad character in a string, fail run
+        raise NameError('disallowed character (%s) in setting: %s value: %s' % 
+          (char, key, value)
+
+
 # if not cli then check env
 
 # enty for the rsnap node
@@ -460,6 +398,12 @@ def ceph_rsnapshot():
   # image_filter = args.image_filter
   if args.__contains__('imagere'):
     settings.IMAGE_RE = args.imagere
+
+  try:
+    validate_settings_strings()
+  except NameError as e:
+    logger.error('error with settings strings: %s' e)
+    sys.exit(1)
 
   # print out settings using and exit
   if args.__contains__('printsettings'):

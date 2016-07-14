@@ -101,28 +101,70 @@ def setup_temp_conf_dir(pool=''):
 # FIXME do this for all pools from the main loop
 
 
-def setup_qcow_temp_path(pool=''):
+def setup_qcow_temp_path(pool='',cephhost='',qcowtemppath='',noop=None):
+    """ ssh to ceph node and check or make temp qcow export path
+    """
+    logger = logs.get_logger()
+    if not qcowtemppath:
+        qcowtemppath = settings.QCOW_TEMP_PATH
     if not pool:
         pool = settings.POOL
-    logger = logs.get_logger()
-    temp_path = settings.QCOW_TEMP_PATH
-    if not os.path.isdir("%s/%s" % (temp_path, pool)):
-        if settings.NOOP:
-            logger.info('NOOP: would have made qcow temp path %s/%s' %
-                        (temp_path, pool))
+    if not cephhost:
+        cephhost = settings.CEPH_HOST
+    if not noop:
+        noop = settings.NOOP
+    temp_path = '%s/%s' % (qcowtemppath, pool)
+    logger.info('making qcow temp export path %s on ceph host %s' % (temp_path,
+        cephhost))
+    LS_COMMAND = 'ls %s' % temp_path
+    MKDIR_COMMAND = 'mkdir -p %s' % temp_path
+    CHMOD_COMMAND = 'chmod 700 %s' % temp_path
+    try:
+        ls_result = sh.ssh(cephhost,LS_COMMAND)
+    except sh.ReturnErrorCode as e:
+        if e.errno == 2:
+            # ls returns 2 for no such dir, this is OK, just make it
+            try:
+                if noop:
+                    logger.info('NOOP: would have made qcow temp path %s' %
+                                temp_path)
+                else:
+                    sh.ssh(cephhost,MKDIR_COMMAND)
+                    sh.ssh(cephhost,CHMOD_COMMAND)
+            except sh.ReturnErrorCode as e:
+                logger.error('error making or chmodding qcow temp dir:')
+                logger.exception(e.stderr)
+                raise
+            except Exception as e:
+                logger.error('error making or chmodding qcow temp dir')
+                logger.exception(e)
+                raise
         else:
-            logger.info('creating qcow temp path: %s/%s' % (temp_path, pool))
-            os.makedirs("%s/%s" % (temp_path, pool), 0700)
-    else:
-        logger.info('using qcow temp path: %s/%s' % (temp_path, pool))
+            logger.error('error checking temp qcow export directory')
+            logger.exception(e.stderr)
+            raise
+    except Exception as e:
+        logger.error('error checking temp qcow export directory')
+        logger.exception(e)
+        raise
+    # we rsnap an individual qcow so we don't need to check it's emoty
+    logger.info('using qcow temp path: %s' % temp_path)
     # now just to be safe verify perms on it are 700
-    check_set_dir_perms('%s/%s' % (temp_path, pool), 0o700)
+    try:
+        sh.ssh(cephhost,CHMOD_COMMAND)
+    except sh.ReturnErrorCode as e:
+        logger.error('error chmodding qcow temp dir:')
+        logger.exception(e.stderr)
+        raise
+    except Exception as e:
+        logger.error('error chmodding qcow temp dir')
+        logger.exception(e)
+        raise
 
-# check that temp_path is empty
+
+# check that empty_source is empty
 # this is used to rotate orphans
 # TODO make this use an empty tempdir
-
-
 def make_empty_source():
     # TODO make this use mkdtemp
     empty_source_path = "%s/empty_source/" % settings.QCOW_TEMP_PATH
