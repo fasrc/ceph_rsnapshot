@@ -293,7 +293,12 @@ def rsnap_pool(pool):
             index = index + 1
 
     # {'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate': orphans_failed_to_rotate}
-    orphan_result = rotate_orphans(orphans_on_dest, pool=pool)
+    if settings.NO_ROTATE_ORPHANS:
+      logger.info('not rotating orphans')
+      orphan_result=dict(orphans_rotated=['no_rotate_orphans was set True'],
+        orphans_failed_to_rotate=['no_rotate_orphans was set True'])
+    else:
+      orphan_result = rotate_orphans(orphans_on_dest, pool=pool)
 
     return({'successful': successful,
             'failed': failed,
@@ -320,6 +325,7 @@ def get_current_settings():
         LOG_FILENAME=settings.LOG_FILENAME,
         VERBOSE=settings.VERBOSE,
         NOOP=settings.NOOP,
+        NO_ROTATE_ORPHANS=False,
         IMAGE_RE=settings.IMAGE_RE,
         RETAIN_INTERVAL=settings.RETAIN_INTERVAL,
         RETAIN_NUMBER=settings.RETAIN_NUMBER,
@@ -361,14 +367,16 @@ def ceph_rsnapshot():
                         help="path to alternate config file")
     parser.add_argument("--host", required=False,
                         help="ceph node to backup from")
-    parser.add_argument(
-        '-p', '--pool', help='ceph pool to back up', required=False)
-    parser.add_argument('--imagere', required=False,
+    parser.add_argument('-p', '--pool', help='ceph pool to back up',
+                        required=False)
+    parser.add_argument('--image_re', required=False,
                         help='RE to match images to back up')
     parser.add_argument("-v", "--verbose", action='store_true',
                         required=False, help="verbose logging output")
     parser.add_argument("--noop", action='store_true', required=False,
                         help="noop - don't make any directories or do any actions. logging only to stdout")
+    parser.add_argument("--no_rotate_orphans", action='store_true', required=False,
+                        help="don't rotate the orphans on the dest")
     parser.add_argument("--printsettings", action='store_true',
                         required=False, help="print out settings using and exit")
     parser.add_argument("-k", "--keepconf", action='store_true',
@@ -413,8 +421,10 @@ def ceph_rsnapshot():
             ['--' + x for x in args.extralongargs.split(',')])
         # FIXME not working correctly
     # image_filter = args.image_filter
-    if args.__contains__('imagere'):
-        settings.IMAGE_RE = args.imagere
+    if args.__contains__('image_re'):
+        settings.IMAGE_RE = args.image_re
+    if args.__contains__('no_rotate_orphans'):
+        settings.NO_ROTATE_ORPHANS = args.no_rotate_orphans
 
     try:
         validate_settings_strings()
@@ -458,6 +468,7 @@ def ceph_rsnapshot():
         dirs.setup_log_dirs()
 
         try:
+            # TODO pass args here instead of in settings?
             result = rsnap_pool(pool)
         except NameError as e:
             # TODO get some way to still have the list of images that it completed
