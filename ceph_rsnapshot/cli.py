@@ -134,7 +134,6 @@ def rsnap_image_sh(image, pool=''):
             if rsnap_result.stdout.strip("\n"):
                 logger.info("stdout from rsnap:\n" +
                             rsnap_result.stdout.strip("\n"))
-        # TODO handle only rsnap sh exception
         except sh.ErrorReturnCode as e:
             logger.error("failed to rsnap %s with code %s" %
                          (image, e.exit_code))
@@ -204,7 +203,6 @@ def rsnap_image(image, pool='', template=None):
         logger.error('error removing qcow. will continue to next image anyways,'
                      ' note that we check for free space so wont entirely fill disk if they'
                      ' all fail')
-    # TODO catch error if its already gone and move forward
 
     # either way remove the temp conf file
     # unless flag to keep it for debug

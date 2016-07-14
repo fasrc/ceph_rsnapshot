@@ -112,13 +112,11 @@ def get_freespace(path=''):
         free_space_bytes = int(free_space_kb.stdout) * 1024
         return free_space_bytes
     except sh.ErrorReturnCode as e:
-        # TODO handle ssh error
         logger.error('error getting free space on ceph node for %s' % path)
         logger.exception(e.stderr)
         # pass it up
         raise
     except Exception as e:
-        # TODO handle other error
         logger.error('error getting free space on ceph node')
         logger.exception(e)
         # pass it up
@@ -128,7 +126,7 @@ def get_freespace(path=''):
 def get_today():
     """get todays date in iso format, this can run on either node
     """
-    # TODO use settings.IMAGE_RE
+    # TODO use settings.SNAP_NAMING_FORMAT
     return sh.date('--iso').strip('\n')
 
 
