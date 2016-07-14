@@ -183,6 +183,7 @@ def rsnap_image(image, pool='', template=None):
         export_qcow_ok = False
     except Exception as e:
         logger.error('error from export qcow')
+        logger.exception(e)
         export_qcow_ok = False
 
     # if exported ok, then rsnap this image
