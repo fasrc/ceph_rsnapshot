@@ -344,7 +344,7 @@ def validate_settings_strings():
       if not re.search(STRING_SAFE_CHAR_RE, char):
         # bad character in a string, fail run
         raise NameError('disallowed character (%s) in setting: %s value: %s' % 
-          (char, key, value)
+          (char, key, value))
 
 
 # if not cli then check env
