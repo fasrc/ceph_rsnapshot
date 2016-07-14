@@ -210,8 +210,8 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     qemu_dest_string = "%s/%s/%s.qcow2" % (
         settings.QCOW_TEMP_PATH, pool, image)
     # do the export
-    QEMU_IMG_COMMAND = ('qemu-img convert %s %s -f=raw'
-                        ' -O=qcow2' % (qemu_source_string, qemu_dest_string))
+    QEMU_IMG_COMMAND = ('qemu-img convert %s %s -f raw'
+                        ' -O qcow2' % (qemu_source_string, qemu_dest_string))
     logger.info('running rbd export on ceph host %s with command %s' %
                 (cephhost, QEMU_IMG_COMMAND))
     try:
