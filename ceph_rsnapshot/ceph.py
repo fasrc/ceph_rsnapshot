@@ -111,7 +111,8 @@ def get_freespace(path=''):
     DF_COMMAND = "df -P %s | grep / | awk '{print $4}'" % path
     try:
         free_space_kb = sh.ssh(settings.CEPH_HOST, DF_COMMAND)
-        return free_space * 1024
+        free_space_bytes = free_space_kb * 1024
+        return free_space_bytes
     except sh.ErrorReturnCode as e:
         # TODO handle ssh error
         logger.error('error getting free space on ceph node for %s' % path)

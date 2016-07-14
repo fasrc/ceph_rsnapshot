@@ -70,7 +70,7 @@ def rotate_orphans(orphans, pool=''):
                          ' cannot rotate orphans. error: ' % e)
             # fail out
             return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate':
-                    [orphan for orphan in orphans_on_dest if orphan not in orphans_rotated]})
+                    [orphan for orphan in orphans if orphan not in orphans_rotated]})
         # note this uses temp_path on the dest - which we check to be empty
         # note also create path with . in it so rsync relative works
         source = "%s/empty_source/./" % settings.QCOW_TEMP_PATH
