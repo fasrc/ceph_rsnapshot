@@ -9,8 +9,8 @@ from ceph_rsnapshot import dirs
 from ceph_rsnapshot import settings
 
 
-def check_snap(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
-        snapnamingformat=''):
+def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
+               snapnamingformat=''):
     """ ssh to ceph host and check for a snapshot
     """
     logger = logs.get_logger()
@@ -27,9 +27,9 @@ def check_snap(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
         cephuser = settings.CEPH_USER
     if not cephcluster:
         cephcluster = settings.CEPH_CLUSTER
-    #TODO use user
-    RBD_CHECK_SNAP_COMMAND = ('rbd info %s/%s@%s --cluster %s' % 
-        (pool, image, snap, cephcluster))
+    # TODO use user
+    RBD_CHECK_SNAP_COMMAND = ('rbd info %s/%s@%s --cluster %s' %
+                              (pool, image, snap, cephcluster))
     logger.info('checking for snap with command %s' % RBD_CHECK_SNAP_COMMAND)
     try:
         rbd_check_result = sh.ssh(cephhost, RBD_CHECK_SNAP_COMMAND)
@@ -46,8 +46,8 @@ def check_snap(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
     return True
 
 
-def gathernames(pool='',cephhost='',cephuser='',cephcluster='',
-        snapnamingformat='',image_re=''):
+def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
+                snapnamingformat='', image_re=''):
     """ ssh to ceph node and get list of rbd images that match snap naming
         format
     """
@@ -65,13 +65,13 @@ def gathernames(pool='',cephhost='',cephuser='',cephcluster='',
     if not image_re:
         imagere = settings.IMAGE_RE
     logger.info('getting list of images in pool %s that match image_re %s'
-        ' from ceph host %s cluster %s that have snaps matching date'
-        ' format %s' % (pool, imagere, cephhost, cephcluster, snapnamingformat))
+                ' from ceph host %s cluster %s that have snaps matching date'
+                ' format %s' % (pool, imagere, cephhost, cephcluster, snapnamingformat))
     # TODO use rbd user
     RBD_LS_COMMAND = ('rbd ls %s --cluster=%s --format=json' %
-        (pool, cephcluster))
+                      (pool, cephcluster))
     try:
-        rbd_ls_result = sh.ssh(cephhost,RBD_LS_COMMAND)
+        rbd_ls_result = sh.ssh(cephhost, RBD_LS_COMMAND)
     except sh.ErrorReturnCode as e:
         logger.info('error getting list of images from ceph node')
         logger.exception(e.stderr)
@@ -83,21 +83,21 @@ def gathernames(pool='',cephhost='',cephuser='',cephcluster='',
     rbd_images_unfiltered = json.loads(rbd_ls_result.stdout)
     logger.info('all images: %s' % ' '.join(rbd_images_unfiltered))
     # filter by image_re
-    rbd_images_filtered = [image for image in rbd_images_unfiltered if 
-        re.match(image_re,image)]
+    rbd_images_filtered = [image for image in rbd_images_unfiltered if
+                           re.match(image_re, image)]
     logger.info('images after filtering by image_re "%s" are: %s' % (image_re,
-        ' '.join(rbd_images_filtered)))
+                                                                     ' '.join(rbd_images_filtered)))
     # now check for snaps
-    images_with_snaps=[]
-    images_without_snaps=[]
+    images_with_snaps = []
+    images_without_snaps = []
     for image in rbd_images_filtered:
-      if check_snap(image):
-        images_with_snaps.append(image)
-      else:
-        images_without_snaps.append(image)
+        if check_snap(image):
+            images_with_snaps.append(image)
+        else:
+            images_without_snaps.append(image)
     if images_without_snaps:
-        logger.warning('found %s images with no snaps' % 
-            len(images_without_snaps))
+        logger.warning('found %s images with no snaps' %
+                       len(images_without_snaps))
     return images_with_snaps
 
 
@@ -133,7 +133,7 @@ def get_today():
     return sh.date('--iso').strip('\n')
 
 
-def get_rbd_size(image,snap='',pool='',cephhost='',cephuser='',cephcluster=''):
+def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''):
     """ssh to ceph node check the size of this image@snap
     """
     logger = logs.get_logger()
@@ -149,21 +149,21 @@ def get_rbd_size(image,snap='',pool='',cephhost='',cephuser='',cephcluster=''):
         cephcluster = settings.CEPH_CLUSTER
     rbd_image_string = "%s/%s@%s" % (pool, image, snap)
     RBD_COMMAND = ('rbd du %s --user=%s --cluster=%s --format=json' %
-            (rbd_image_string, cephuser, cephcluster))
-    logger.info('getting rbd size from ceph host %s with command %s' % 
-        (cephhost, RBD_COMMAND))
+                   (rbd_image_string, cephuser, cephcluster))
+    logger.info('getting rbd size from ceph host %s with command %s' %
+                (cephhost, RBD_COMMAND))
     try:
         rbd_du_result = sh.ssh(cephhost, RBD_COMMAND)
         rbd_image_used_size = (json.loads(rbd_du_result.stdout)['images'][0]
-            ['used_size'])
+                               ['used_size'])
         rbd_image_provisioned_size = (json.loads(rbd_du_result.stdout)['images']
-            [0]['provisioned_size'])
+                                      [0]['provisioned_size'])
         # using provisioned_size as these are snaps and space could be on the
         # parent
         return rbd_image_provisioned_size
     except sh.ErrorReturnCode as e:
         logger.error('error getting rbd size for %s, output from ssh:' %
-            rbd_image_string)
+                     rbd_image_string)
         logger.exception(e.stderr)
         raise
     except Exception as e:
@@ -172,8 +172,8 @@ def get_rbd_size(image,snap='',pool='',cephhost='',cephuser='',cephcluster=''):
         raise
 
 
-def export_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
-        noop=None):
+def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
+                noop=None):
     """ssh to ceph node, check free space vs rbd provisioned size, 
         and export a qcow to qcow_temp_path/pool/imagename.qcow2
     """
@@ -191,7 +191,7 @@ def export_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
     if not noop:
         noop = settings.NOOP
     logger.info('exporting image %s@%s from pool %s on ceph host %s cluster %s'
-        ' as user %s' % (image, snap, pool, cephhost, cephuser, cephcluster))
+                ' as user %s' % (image, snap, pool, cephhost, cephuser, cephcluster))
 
     # if any of these errors, fail this export and raise the errors up
     dirs.setup_qcow_temp_path(settings.POOL)
@@ -199,43 +199,44 @@ def export_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
     rbd_image_used_size = get_rbd_size(image)
 
     logger.info("image size %s" % rbd_image_used_size)
-    if rbd_image_used_size > ( avail_bytes - settings.MIN_FREESPACE ):
+    if rbd_image_used_size > (avail_bytes - settings.MIN_FREESPACE):
         logger.error("not enough free space to export this qcow")
         raise NameError('not enough space to export this qcow')
 
     # build source and dest strings
     qemu_source_string = ("rbd:%s/%s@%s:id=%s:conf=/etc/ceph/%s.conf" %
-        (pool, image, snap, cephuser, cephcluster))
-    qemu_dest_string = "%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH, pool, image)
+                          (pool, image, snap, cephuser, cephcluster))
+    qemu_dest_string = "%s/%s/%s.qcow2" % (
+        settings.QCOW_TEMP_PATH, pool, image)
     # do the export
     QEMU_IMG_COMMAND = ('qemu-img convert %s %s f=raw'
-        ' O=qcow2' % (qemu_source_string, qemu_dest_string))
-    logger.info('running rbd export on ceph host %s with command %s' % 
-        (cephhost, QEMU_IMG_COMMAND))
+                        ' O=qcow2' % (qemu_source_string, qemu_dest_string))
+    logger.info('running rbd export on ceph host %s with command %s' %
+                (cephhost, QEMU_IMG_COMMAND))
     try:
-        ts=time.time()
+        ts = time.time()
         if noop:
             logger.info('NOOP: would have exported qcow')
         else:
             export_result = sh.ssh(cephhost, QEMU_IMG_COMMAND)
-        tf=time.time()
-        elapsed_time = tf-ts
+        tf = time.time()
+        elapsed_time = tf - ts
         elapsed_time_ms = elapsed_time * 10**3
     except sh.ErrorReturnCode as e:
         logger.error('error exporting qcow with command %s on ceph host %s,'
-            ' output from ssh:' % (cephhost, QEMU_IMG_COMMAND))
+                     ' output from ssh:' % (cephhost, QEMU_IMG_COMMAND))
         logger.exception(e.stderr)
         raise
     except Exception as e:
         logger.error('error exporting qcow with command %s on ceph host %s,'
-            ' output from ssh:' % (cephhost, QEMU_IMG_COMMAND))
+                     ' output from ssh:' % (cephhost, QEMU_IMG_COMMAND))
         logger.exception(e)
         raise
     return elapsed_time_ms
 
 
-def remove_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
-        noop=None):
+def remove_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
+                noop=None):
     """ ssh to ceph node and remove a qcow from path
         qcow_temp_path/pool/imagename.qcow2
     """
@@ -254,25 +255,25 @@ def remove_qcow(image,snap='',pool='',cephhost='',cephuser='',cephcluster='',
     if not noop:
         noop = settings.NOOP
     temp_qcow_file = ("%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH,
-        settings.POOL, image))
-    logger.info("deleting temp qcow from path %s on ceph host %s" % 
-        (image, settings.POOL))
+                                          settings.POOL, image))
+    logger.info("deleting temp qcow from path %s on ceph host %s" %
+                (image, settings.POOL))
     SSH_RM_QCOW_COMMAND = 'rm %s' % temp_qcow_file
     try:
         if settings.NOOP:
             logger.info('NOOP: would have removed temp qcow for image %s from'
-                ' ceph host %s with command %s' % (image, cephhost,
-                SSH_RM_QCOW_COMMAND))
+                        ' ceph host %s with command %s' % (image, cephhost,
+                                                           SSH_RM_QCOW_COMMAND))
         else:
             sh.ssh(cephhost, SSH_RM_QCOW_COMMAND)
     except sh.ErrorReturnCode as e:
-        logger.error('error removing temp qcow %s with error from ssh:' 
-            % temp_qcow_file)
+        logger.error('error removing temp qcow %s with error from ssh:'
+                     % temp_qcow_file)
         logger.exception(e.stderr)
         raise
     except Exception as e:
-        logger.error('error removing temp qcow %s' 
-            % temp_qcow_file)
+        logger.error('error removing temp qcow %s'
+                     % temp_qcow_file)
         logger.exception(e)
         raise
     logger.info("successfully removed qcow for %s" % image)

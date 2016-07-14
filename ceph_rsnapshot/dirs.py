@@ -9,17 +9,17 @@ def check_set_dir_perms(directory, perms=0o700):
     logger = logs.get_logger()
     desired_mode = oct(perms)[-3:]
     if settings.NOOP:
-      logger.info('NOOP: would have verified that permissions on %s are %s' %
-        ( directory, desired_mode ))
+        logger.info('NOOP: would have verified that permissions on %s are %s' %
+                    (directory, desired_mode))
     else:
-      dir_stat = os.stat(directory)
-      current_mode = oct(dir_stat.st_mode)[-3:]
-      if current_mode != desired_mode:
-        logger.warning('perms not correct on %s: currently %s should be %s,'
-                       'fixing' % (directory, current_mode, desired_mode))
-        os.chmod(directory, perms)
-        logger.info('perms now correctly set to %s on %s' % (desired_mode,
-                                                             directory))
+        dir_stat = os.stat(directory)
+        current_mode = oct(dir_stat.st_mode)[-3:]
+        if current_mode != desired_mode:
+            logger.warning('perms not correct on %s: currently %s should be %s,'
+                           'fixing' % (directory, current_mode, desired_mode))
+            os.chmod(directory, perms)
+            logger.info('perms now correctly set to %s on %s' % (desired_mode,
+                                                                 directory))
 
 
 def setup_backup_dirs(pool='', dirs=''):
@@ -78,7 +78,7 @@ def setup_temp_conf_dir(pool=''):
         try:
             if settings.NOOP:
                 logger.info('NOOP: would have made temp dir with mkdtemp'
-                    ' prefix: %s' % settings.TEMP_CONF_DIR_PREFIX)
+                            ' prefix: %s' % settings.TEMP_CONF_DIR_PREFIX)
                 temp_conf_dir = '/tmp/ceph_rsnapshot_mkdtemp_noop_fake_path'
             else:
                 temp_conf_dir = tempfile.mkdtemp(
@@ -102,7 +102,7 @@ def setup_temp_conf_dir(pool=''):
 # FIXME do this for all pools from the main loop
 
 
-def setup_qcow_temp_path(pool='',cephhost='',qcowtemppath='',noop=None):
+def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
     """ ssh to ceph node and check or make temp qcow export path
     """
     logger = logs.get_logger()
@@ -116,12 +116,12 @@ def setup_qcow_temp_path(pool='',cephhost='',qcowtemppath='',noop=None):
         noop = settings.NOOP
     temp_path = '%s/%s' % (qcowtemppath, pool)
     logger.info('making qcow temp export path %s on ceph host %s' % (temp_path,
-        cephhost))
+                                                                     cephhost))
     LS_COMMAND = 'ls %s' % temp_path
     MKDIR_COMMAND = 'mkdir -p %s' % temp_path
     CHMOD_COMMAND = 'chmod 700 %s' % temp_path
     try:
-        ls_result = sh.ssh(cephhost,LS_COMMAND)
+        ls_result = sh.ssh(cephhost, LS_COMMAND)
     except sh.ReturnErrorCode as e:
         if e.errno == 2:
             # ls returns 2 for no such dir, this is OK, just make it
@@ -130,8 +130,8 @@ def setup_qcow_temp_path(pool='',cephhost='',qcowtemppath='',noop=None):
                     logger.info('NOOP: would have made qcow temp path %s' %
                                 temp_path)
                 else:
-                    sh.ssh(cephhost,MKDIR_COMMAND)
-                    sh.ssh(cephhost,CHMOD_COMMAND)
+                    sh.ssh(cephhost, MKDIR_COMMAND)
+                    sh.ssh(cephhost, CHMOD_COMMAND)
             except sh.ReturnErrorCode as e:
                 logger.error('error making or chmodding qcow temp dir:')
                 logger.exception(e.stderr)
@@ -152,7 +152,7 @@ def setup_qcow_temp_path(pool='',cephhost='',qcowtemppath='',noop=None):
     logger.info('using qcow temp path: %s' % temp_path)
     # now just to be safe verify perms on it are 700
     try:
-        sh.ssh(cephhost,CHMOD_COMMAND)
+        sh.ssh(cephhost, CHMOD_COMMAND)
     except sh.ReturnErrorCode as e:
         logger.error('error chmodding qcow temp dir:')
         logger.exception(e.stderr)
@@ -175,16 +175,16 @@ def make_empty_source():
         dirlist = os.listdir(empty_source_path)
         if len(dirlist) != 0:
             raise NameError('ERROR: empty_source_path %s exists and is not'
-                ' empty' % empty_source_path)
+                            ' empty' % empty_source_path)
     except OSError as e:
         if e.errno == 2:
             # OSError 2 is No such file or directory, so make it
             if settings.NOOP:
                 logger.info('NOOP: would have made temp empty source at %s' %
-                    empty_source_path)
+                            empty_source_path)
             else:
                 logger.info('creating temp empty source path %s' %
-                    empty_source_path)
+                            empty_source_path)
                 os.mkdir(empty_source_path, 0700)
                 # TODO catch if error?
         else:
@@ -204,7 +204,6 @@ def setup_dir(directory):
         logger.info('directory %s already exists, so using it' % directory)
         # still need to check perms
         check_set_dir_perms(directory)
-
 
 
 def setup_dir_per_pool(directory):
