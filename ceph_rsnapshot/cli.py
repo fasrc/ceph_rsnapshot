@@ -480,10 +480,10 @@ def ceph_rsnapshot():
                 dirs.remove_temp_conf_dir()
 
         # write output
-        logger.info("Successful:")
         successful_images = [('%s/%s' % (image['pool'], image['image'])) for
-            image in all_result[successful]]
-        logger.info(', '.join(successful_images))
+            image in all_result['successful']]
+        logger.info('Successfully backed up images: ' +
+            ', '.join(successful_images))
         if all_result['failed']:
             logger.error("Failed:")
             logger.error(all_result['failed'])
