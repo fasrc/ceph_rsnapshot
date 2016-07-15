@@ -152,6 +152,9 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
     logger.info('using qcow temp path: %s' % temp_path)
     # now just to be safe verify perms on it are 700
     try:
+        if settings.NOOP:
+            logger.info('NOOP: would have chmodded qcow temp path with command:'
+                ' %s' % CHMOD_COMMAND)
         sh.ssh(cephhost, CHMOD_COMMAND)
     except sh.ErrorReturnCode as e:
         logger.error('error chmodding qcow temp dir:')
