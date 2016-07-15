@@ -315,7 +315,12 @@ def rsnap_pool(pool):
       orphan_result=dict(orphans_rotated=['no_rotate_orphans was set True'],
         orphans_failed_to_rotate=['no_rotate_orphans was set True'])
     else:
-      orphan_result = rotate_orphans(orphans_on_dest, pool=pool)
+        try:
+            orphan_result = rotate_orphans(orphans_on_dest, pool=pool)
+        except Exception as e:
+            logger.error('error with rotating orphans:')
+            logger.exception(e)
+            # just orphans so continue on 
 
     return({'successful': successful,
             'failed': failed,
@@ -454,14 +459,22 @@ def ceph_rsnapshot():
             try:
                 # TODO pass args here instead of in settings?
                 pool_result = rsnap_pool(pool)
+                # now append to all_result
                 for key in pool_result:
                     # they are all arrays so append
+                    # but we need to make the array first if not yet there
+                    if not all_result.has_key(key):
+                        all_result[key]=[]
+                    # now append
                     all_result[key].append(pool_result[key])
             except NameError as e:
                 # TODO get some way to still have the list of images that
                 # it completed before failing
                 logger.error('rsnap pool %s failed error: %s' % (pool, e))
                 raise
+            except Exception as e:
+                logger.error('error with pool %s' % pool)
+                logger.exception(e)
             logger.info('done with pool %s' % pool)
             if not settings.KEEPCONF:
                 dirs.remove_temp_conf_dir()
