@@ -466,7 +466,7 @@ def ceph_rsnapshot():
                     if not all_result.has_key(key):
                         all_result[key]=[]
                     # now append
-                    all_result[key].append(pool_result[key])
+                    all_result[key].extend(pool_result[key])
             except NameError as e:
                 # TODO get some way to still have the list of images that
                 # it completed before failing
