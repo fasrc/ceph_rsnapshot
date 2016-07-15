@@ -22,7 +22,7 @@ def check_set_dir_perms(directory, perms=0o700):
                                                                  directory))
 
 
-def setup_backup_dirs(pool='', dirs=''):
+def setup_backup_dirs_for_pool(pool='', dirs=''):
     logger = logs.get_logger()
     if not pool:
         pool = settings.POOL
@@ -38,7 +38,7 @@ def setup_backup_dirs(pool='', dirs=''):
         setup_dir(directory)
 
 
-def setup_log_dirs(pool=''):
+def setup_log_dirs_for_pool(pool=''):
     logger = logs.get_logger()
     if not pool:
         pool = settings.POOL
@@ -51,7 +51,7 @@ def setup_log_dirs(pool=''):
         setup_dir(directory)
 
 
-def setup_temp_conf_dir(pool=''):
+def setup_temp_conf_dir_for_pool(pool=''):
     if not pool:
         pool = settings.POOL
     logger = logs.get_logger()

@@ -92,7 +92,7 @@ def test_template():
     settings.load_settings()
     settings.LOG_BASE_PATH = '/tmp/ceph_rsnapshot_logs'
     logger = logs.setup_logging()
-    temp_conf_dir = dirs.setup_temp_conf_dir()
+    temp_conf_dir = dirs.setup_temp_conf_dir_for_pool()
     logger.info('temp conf dir is %s' % temp_conf_dir)
     print(settings.TEMP_CONF_DIR)
 

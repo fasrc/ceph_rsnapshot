@@ -3,6 +3,7 @@
 import re
 
 from ceph_rsnapshot import settings
+from ceph_rsnapshot import logs
 
 
 # allowed characters in settings strings here:
@@ -25,6 +26,7 @@ def get_current_settings():
         CEPH_USER=settings.CEPH_USER,
         CEPH_CLUSTER=settings.CEPH_CLUSTER,
         POOL=settings.POOL,
+        POOLS=settings.POOLS,
         QCOW_TEMP_PATH=settings.QCOW_TEMP_PATH,
         EXTRA_ARGS=settings.EXTRA_ARGS,
         TEMP_CONF_DIR_PREFIX=settings.TEMP_CONF_DIR_PREFIX,
@@ -49,6 +51,9 @@ def validate_settings_strings():
     """ check all settings strings to make sure they are only safe chars
         if not fail run
     """
+    logger = logs.get_logger()
+    logger.info('checking settings strings to ensure they only contain safe'
+        ' chars: %s' % STRING_SAFE_CHAR_RE)
     # check strings are safe
     current_settings = get_current_settings()
     for key in current_settings:
@@ -60,6 +65,14 @@ def validate_settings_strings():
             # don't compare these to an RE
             continue
         try:
+            if key == 'POOLS':
+                logger.info('checking pools string %s' % value)
+                pools_arr = value.split(',')
+                for pool in pools_arr:
+                    logger.info('checking string for pool %s' % pool)
+                    validate_string(pool)
+                # if here then they all validated
+                continue
             if validate_string(value):
                 continue
         except NameError as e:
@@ -68,3 +81,4 @@ def validate_settings_strings():
                 ' error %s' % (key, e))
         except Exception as e:
             raise
+    logger.info('all settings strings ok')

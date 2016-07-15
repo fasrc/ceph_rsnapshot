@@ -17,7 +17,9 @@ SETTINGS = dict(
     CEPH_HOST='localhost',
     CEPH_USER='admin',
     CEPH_CLUSTER='ceph',
-    # TODO allow an array here
+    # POOLS is a comma separated list of pools to backup; can be a single pool
+    POOLS='rbd',
+    # POOL singular is for internal use only
     POOL='rbd',
     # path for the temporary export of qcows
     QCOW_TEMP_PATH='/tmp/qcows/',

@@ -86,9 +86,9 @@ def rotate_orphans(orphans, pool=''):
                 if rsnap_result.stdout.strip("\n"):
                     logger.info("successful; stdout from rsnap:\n" +
                                 rsnap_result.stdout.strip("\n"))
-                orphans_rotated.append(orphan)
+                orphans_rotated.append({'pool': pool, 'orphan': orphan})
             except sh.ErrorReturnCode as e:
-                orphans_failed_to_rotate.append(orphan)
+                orphans_failed_to_rotate.append({'pool': pool, 'orphan': orphan})
                 logger.error("failed to rotate orphan %s with code %s" %
                              (orphan, e.exit_code))
                 logger.error("stdout from source node:\n" +
@@ -259,7 +259,7 @@ def rsnap_pool(pool):
     template = templates.get_template()
 
     successful = []
-    failed = {}
+    failed = []
     orphans_rotated = []
     orphans_failed_to_rotate = []
 
@@ -277,7 +277,8 @@ def rsnap_pool(pool):
             except NameError as e:
                 logger.error('bad character in image name %s: error %s' % 
                     (image, e))
-                failed[image] = {'image': image,
+                # fake return value from image
+                failed.append({'image': image,
                     'pool': pool,
                     'successful': False,
                     'status': {
@@ -285,7 +286,7 @@ def rsnap_pool(pool):
                         'rsnap_ok': False,
                         'remove_qcow_ok': False
                     }
-                }
+                })
                 continue
             # TODO catch other exceptions here?
             logger.info('working on name %s of %s in pool %s: %s' %
@@ -296,12 +297,12 @@ def rsnap_pool(pool):
                 if result['successful']:
                     logger.info('successfully done with %s' % image)
                     # store in array
-                    successful.append(image)
+                    successful.append(result)
                 else:
                     logger.error('error on %s : result: %s' %
                                 (image, result['status']))
                     # store dict in dict
-                    failed[image] = result
+                    failed.append(result)
             except Exception as e:
                 logger.error('error with pool %s at image %s' % (pool, image))
                 logger.exception(e)
@@ -334,7 +335,8 @@ def ceph_rsnapshot():
                         help="path to alternate config file")
     parser.add_argument("--host", required=False,
                         help="ceph node to backup from")
-    parser.add_argument('-p', '--pool', help='ceph pool to back up',
+    parser.add_argument('-p', '--pools', help='comma separated list of'
+                        'ceph pools to back up (can be a single pool)',
                         required=False)
     parser.add_argument('--image_re', required=False,
                         help='RE to match images to back up')
@@ -375,8 +377,8 @@ def ceph_rsnapshot():
     #   etc
     if args.__contains__('host'):
         settings.CEPH_HOST = args.host
-    if args.__contains__('pool'):
-        settings.POOL = args.pool
+    if args.__contains__('pools'):
+        settings.POOLS = args.pools
     if args.__contains__('verbose'):
         settings.VERBOSE = args.verbose
     if args.__contains__('noop'):
@@ -420,46 +422,62 @@ def ceph_rsnapshot():
     # write lockfile for this pool
     # http://stackoverflow.com/a/789383/5928049
     pid = str(os.getpid())
-    pidfile = ("/var/run/ceph_rsnapshot_cephhost_"
-               "%s_pool_%s.pid""" ) % (settings.CEPH_HOST, pool)
+    pidfile = "/var/run/ceph_rsnapshot_cephhost_%s.pid" % settings.CEPH_HOST
     if os.path.isfile(pidfile):
         logger.error("pidfile %s already exists, exiting" % pidfile)
         sys.exit(1)
     logger.info("writing lockfile at %s" % pidfile)
     file(pidfile, 'w').write(pid)
     try:
-        # we've made the lockfile, so rsnap the pool
-        # setup directories
-        dirs.setup_temp_conf_dir(pool)
-        dirs.setup_backup_dirs()
-        dirs.setup_log_dirs()
+        # we've made the lockfile, so rsnap the pools
 
         # clear this so we know if run worked or not
-        result=''
+        all_result={}
 
-        try:
-            # TODO pass args here instead of in settings?
-            result = rsnap_pool(pool)
-        except NameError as e:
-            # TODO get some way to still have the list of images that it completed
-            # before failing
-            logger.error('rsnap pool %s failed error: %s' % (pool, e))
-            raise
+        # iterate over pools
+        pools_csv = settings.POOLS
+        pools_arr = pools_csv.split(',')
+        for pool in pools_arr:
+            logger.info('working on pool "%s"' % pool)
+            if len(pool) == 0:
+                logger.error('empty pool name, skipping')
+                continue
 
-        if not settings.KEEPCONF:
-            dirs.remove_temp_conf_dir()
+            # store this pool in settings for other functions to access it
+            settings.POOL = pool
+
+            # setup directories for this pool
+            dirs.setup_log_dirs_for_pool(pool)
+            dirs.setup_temp_conf_dir_for_pool(pool)
+            dirs.setup_backup_dirs_for_pool(pool)
+
+            try:
+                # TODO pass args here instead of in settings?
+                pool_result = rsnap_pool(pool)
+                for key in pool_result:
+                    # they are all arrays so append
+                    all_result[key].append(pool_result[key])
+            except NameError as e:
+                # TODO get some way to still have the list of images that
+                # it completed before failing
+                logger.error('rsnap pool %s failed error: %s' % (pool, e))
+                raise
+            logger.info('done with pool %s' % pool)
+            if not settings.KEEPCONF:
+                dirs.remove_temp_conf_dir()
 
         # write output
-        logger.info("Successful: %s" % ','.join(result['successful']))
-        if result['failed']:
+        logger.info("Successful:")
+        logger.info(all_result['successful'])
+        if all_result['failed']:
             logger.error("Failed:")
-            logger.error(result['failed'])
-        if result['orphans_rotated']:
+            logger.error(all_result['failed'])
+        if all_result['orphans_rotated']:
             logger.info("orphans rotated:")
-            logger.info(result['orphans_rotated'])
-        if result['orphans_failed_to_rotate']:
+            logger.info(all_result['orphans_rotated'])
+        if all_result['orphans_failed_to_rotate']:
             logger.error("orphans failed to rotate:")
-            logger.error(result['orphans_failed_to_rotate'])
+            logger.error(all_result['orphans_failed_to_rotate'])
         logger.info("done")
     finally:
         # done with this pool so clear the pidfile
@@ -471,10 +489,10 @@ def ceph_rsnapshot():
 
         # TODO should these still sys.exit or should they let the exceptions
         # go?
-        if result:
-            if result['failed']:
+        if all_result:
+            if all_result['failed']:
                 sys.exit(1)
-            elif result['orphans_failed_to_rotate']:
+            elif all_result['orphans_failed_to_rotate']:
                 sys.exit(2)
             else:
                 sys.exit(0)
