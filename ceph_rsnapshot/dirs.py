@@ -119,7 +119,7 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
                                                                      cephhost))
     LS_COMMAND = 'ls %s' % temp_path
     MKDIR_COMMAND = 'mkdir -p %s' % temp_path
-    CHMOD_COMMAND = 'chmod 700 %s' % temp_path
+    CHMOD_COMMAND = 'LANG='' LC_CTYPE='' chmod 700 %s' % temp_path
     try:
         ls_result = sh.ssh(cephhost, LS_COMMAND)
     except sh.ErrorReturnCode as e:
