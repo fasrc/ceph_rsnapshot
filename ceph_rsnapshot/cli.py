@@ -481,7 +481,9 @@ def ceph_rsnapshot():
 
         # write output
         logger.info("Successful:")
-        logger.info(all_result['successful'])
+        successful_images = [('%s/%s' % (image['pool'], image['image'])) for
+            image in all_result[successful]]
+        logger.info(', '.join(successful_images))
         if all_result['failed']:
             logger.error("Failed:")
             logger.error(all_result['failed'])
