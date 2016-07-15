@@ -155,7 +155,8 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
         if settings.NOOP:
             logger.info('NOOP: would have chmodded qcow temp path with command:'
                 ' %s' % CHMOD_COMMAND)
-        sh.ssh(cephhost, CHMOD_COMMAND)
+        else:
+            sh.ssh(cephhost, CHMOD_COMMAND)
     except sh.ErrorReturnCode as e:
         logger.error('error chmodding qcow temp dir:')
         logger.exception(e.stderr)
