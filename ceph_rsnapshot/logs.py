@@ -28,8 +28,7 @@ def setup_logging(stdout=True):
         sh_logger.setLevel(log_level)
 
     # setup log format
-    LOG_FORMAT = ("%(asctime)s [%(levelname)-5.5s] [%(name)s] %(message)s")
-    logFormatter = logging.Formatter(LOG_FORMAT)
+    logFormatter = logging.Formatter(settings.LOG_FORMAT)
 
     # if set to log to stdout, setup console loggers
     if stdout:

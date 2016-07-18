@@ -13,6 +13,8 @@ DEFAULT_CONFIG_HIERARCHY = [
     '/home/ceph_rsnapshot/config/ceph_rsnapshot.yaml',
 ]
 
+LOG_FORMAT = ("%(asctime)s [%(levelname)-5.5s] [%(name)s] %(message)s")
+
 
 SETTINGS = dict(
     CEPH_HOST='localhost',
@@ -71,8 +73,9 @@ SETTINGS = dict(
 def setup_stdout_logger(level=logging.INFO):
     """ setup a basic stdout-only logger
     """
-    logger = logging.getLogger('ceph_rsnapshot')
+    logger = logging.getLogger('ceph_rsnapshot_bootstrap')
     logger.setLevel(level)
+    logFormatter = logging.Formatter(LOG_FORMAT)
     consoleHandler = logging.StreamHandler(sys.stdout)
     consoleHandler.setFormatter(logFormatter)
     logger.addHandler(consoleHandler)
