@@ -6,7 +6,6 @@ import tempfile
 import yaml
 import logging
 
-from ceph_rsnapshot import logs
 
 # first one found in this list is the one used
 DEFAULT_CONFIG_HIERARCHY = [
@@ -67,6 +66,18 @@ SETTINGS = dict(
     SH_LOGGING=False,
 
 )
+
+
+def setup_stdout_logger(level=logging.INFO):
+    """ setup a basic stdout-only logger
+    """
+    logger = logging.getLogger('ceph_rsnapshot')
+    logger.setLevel(level)
+    consoleHandler = logging.StreamHandler(sys.stdout)
+    consoleHandler.setFormatter(logFormatter)
+    logger.addHandler(consoleHandler)
+    return logger
+
 
 
 def load_settings(config_file=''):

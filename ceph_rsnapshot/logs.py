@@ -7,17 +7,6 @@ import logging
 from ceph_rsnapshot import settings
 
 
-def setup_stdout_logger(level=logging.INFO):
-    """ setup a basic stdout-only logger
-    """
-    logger = logging.getLogger('ceph_rsnapshot')
-    logger.setLevel(level)
-    consoleHandler = logging.StreamHandler(sys.stdout)
-    consoleHandler.setFormatter(logFormatter)
-    logger.addHandler(consoleHandler)
-    return logger
-
-
 # setup logging to file, and if stdout is True, log to stdout as well
 # granularity needed for gathernames replying via ssh
 def setup_logging(stdout=True):
