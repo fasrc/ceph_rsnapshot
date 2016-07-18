@@ -212,7 +212,6 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
                 cephuser))
 
     # if any of these errors, fail this export and raise the errors up
-    dirs.setup_qcow_temp_path(settings.POOL)
     avail_bytes = get_freespace(settings.QCOW_TEMP_PATH)
     rbd_image_used_size = get_rbd_size(image)
 

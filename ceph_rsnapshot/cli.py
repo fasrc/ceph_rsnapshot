@@ -369,6 +369,7 @@ def ceph_rsnapshot():
         settings.load_settings()
 
     logger = logs.setup_logging()
+    logger.info("starting ceph_rsnapshot")
     logger.info("launched with cli args: " + " ".join(sys.argv))
 
     # override global settings with cli args
@@ -444,6 +445,9 @@ def ceph_rsnapshot():
             dirs.setup_log_dirs_for_pool(pool)
             dirs.setup_temp_conf_dir_for_pool(pool)
             dirs.setup_backup_dirs_for_pool(pool)
+
+            # connect to ceph node and setup qcow export path
+            dirs.setup_qcow_temp_path(pool)
 
             try:
                 # TODO pass args here instead of in settings?
