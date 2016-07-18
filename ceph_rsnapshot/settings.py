@@ -68,12 +68,13 @@ SETTINGS = dict(
 
 
 def load_settings(config_file=''):
-    logger = logging.getLogger('ceph_rsnapshot')
+    logger = logs.setup_stdout_logger()
     if config_file == '':
         for conf_file in DEFAULT_CONFIG_HIERARCHY:
             if os.path.isfile(conf_file):
                 config_file = conf_file
                 break
+    # FIXME no logging here yet because we haven't loaded logging yet
     logger.info('using settings file %s' % config_file)
     settings = SETTINGS.copy()
     user_did_provide_keepconf = False
