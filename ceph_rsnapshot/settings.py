@@ -81,7 +81,7 @@ def setup_stdout_logger(level=logging.INFO):
 
 
 def load_settings(config_file=''):
-    logger = logs.setup_stdout_logger()
+    logger = setup_stdout_logger()
     if config_file == '':
         for conf_file in DEFAULT_CONFIG_HIERARCHY:
             if os.path.isfile(conf_file):
