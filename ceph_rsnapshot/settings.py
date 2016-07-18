@@ -74,7 +74,9 @@ def load_settings(config_file=''):
             if os.path.isfile(conf_file):
                 config_file = conf_file
                 break
+    logger.info('using settings file %s' % config_file)
     settings = SETTINGS.copy()
+    user_did_provide_keepconf = False
     if os.path.isfile(config_file):
         with open(config_file) as f:
             cfg = yaml.load(f.read()) or {}
@@ -83,11 +85,15 @@ def load_settings(config_file=''):
                 logger.error('ERROR: unsupported setting %s\n' % setting)
                 sys.exit(1)
             else:
-                if setting.upper() == 'TEMP_CONF_DIR':
-                    # FIXME make sure KEEPCONF is enabled
-                    pass
+                if setting.upper() == 'KEEPCONF':
+                    # check for this here, because if we've been passed a conf
+                    # dir, and keepconf is not specified, then we'll set
+                    # KEEPCONF. otherwise, we'll let user config stand as-is
+                    user_did_provide_keepconf = True
                 settings[setting.upper()] = cfg[setting]
     else:
         logger.info('WARNING: not loading config - using default settings')
+    if settings.TEMP_CONF_DIR and not user_did_provide_keepconf:
+        settings.KEEPCONF = True
     globals().update(settings)
     return settings
