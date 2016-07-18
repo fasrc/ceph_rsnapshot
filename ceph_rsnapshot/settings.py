@@ -93,7 +93,7 @@ def load_settings(config_file=''):
                 settings[setting.upper()] = cfg[setting]
     else:
         logger.info('WARNING: not loading config - using default settings')
-    if settings.TEMP_CONF_DIR and not user_did_provide_keepconf:
-        settings.KEEPCONF = True
+    if settings['TEMP_CONF_DIR'] and not user_did_provide_keepconf:
+        settings['KEEPCONF'] = True
     globals().update(settings)
     return settings
