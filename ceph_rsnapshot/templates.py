@@ -86,14 +86,3 @@ def remove_conf(image, pool=''):
         logger.info('removing temp rsnap conf file for image %s' % image)
         os.remove('%s/%s/%s.conf' % (settings.TEMP_CONF_DIR, pool, image))
         # FIXME raise error if error
-
-
-def test_template():
-    settings.load_settings()
-    settings.LOG_BASE_PATH = '/tmp/ceph_rsnapshot_logs'
-    logger = logs.setup_logging()
-    temp_conf_dir = dirs.setup_temp_conf_dir_for_pool()
-    logger.info('temp conf dir is %s' % temp_conf_dir)
-    print(settings.TEMP_CONF_DIR)
-
-    get_template()
