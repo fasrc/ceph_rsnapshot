@@ -38,7 +38,7 @@ SETTINGS = dict(
     # whether to keep temp rsnap config files
     KEEPCONF=False,
     # base path for backup qcows to land
-    BACKUP_BASE_PATH='/backups/ceph-rsnapshot',
+    BACKUP_BASE_PATH='/backups/ceph_rsnapshot',
     # base path for logs, and also rsnap logs
     LOG_BASE_PATH='/var/log/ceph_rsnapshot',
     LOG_FILENAME='ceph_rsnapshot.log',
