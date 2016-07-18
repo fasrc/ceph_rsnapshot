@@ -357,13 +357,8 @@ def ceph_rsnapshot():
                         required=False, help="keep conf files after run")
     parser.add_argument("-e", "--extralongargs", required=False,
                         help="extra long args for rsync of format foo,bar for arg --foo --bar")
-    # TODO add a param to show config it would use
+    # TODO add param options:
     # to show names on source only
-    # parser.add_argument('image_filter', help='regex to select rbd images to
-    # back up') # FIXME use this param not image_re  also FIXME pass this to
-    # gathernames? (need to shell escape it...)  have gathernames not do any
-    # filtering, so filter in this script, and then on the export qcow check
-    # if it has a snap
     args = parser.parse_args()
 
     # if we got passed an alt config file path, use that
@@ -417,14 +412,8 @@ def ceph_rsnapshot():
         print('running with settings:\n')
         logger.info(json.dumps(helpers.get_current_settings(), indent=2))
 
-    # TODO wrap pools here
-    # for pool in POOLS:
-    #   settings.POOL=pool
-
-    # get local variables we need from settings we just set
-    pool = settings.POOL
-
-    # write lockfile for this pool
+    # write lockfile
+    # TODO do this per ceph host or per ceph cluster
     # http://stackoverflow.com/a/789383/5928049
     pid = str(os.getpid())
     pidfile = "/var/run/ceph_rsnapshot_cephhost_%s.pid" % settings.CEPH_HOST

@@ -68,7 +68,6 @@ def setup_temp_conf_dir_for_pool(pool=''):
                     os.makedirs(settings.TEMP_CONF_DIR)
                     logger.info('created temp dir at %s' %
                                 settings.TEMP_CONF_DIR)
-            # TODO only catch IOerror here
             except IOError as e:
                 logger.error('Cannot create conf temp dir (or intermediate dirs) from' +
                              ' setting %s with error %s' % (settings.TEMP_CONF_DIR, e))
@@ -86,7 +85,6 @@ def setup_temp_conf_dir_for_pool(pool=''):
                 logger.info('created temp conf dir: %s' % temp_conf_dir)
             # store this in global settings
             settings.TEMP_CONF_DIR = temp_conf_dir
-        # TODO only catch io error here
         except IOError as e:
             logger.error('cannot create conf temp dir with error %s' % e)
             sys.exit(1)
