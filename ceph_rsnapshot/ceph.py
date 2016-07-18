@@ -144,7 +144,7 @@ def get_freespace(path=''):
 def get_today(snap_naming_date_format=''):
     """get todays date in iso format, this can run on either node
     """
-    logger=self.get_logger()
+    logger=logs.get_logger()
     if not snap_naming_date_format:
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
     return sh.date('+%s' % snap_naming_date_format).strip('\n')
