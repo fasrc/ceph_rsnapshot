@@ -6,18 +6,13 @@ from ceph_rsnapshot import settings
 from ceph_rsnapshot import logs
 
 
-# allowed characters in settings strings here:
-# alphanumeric, forward slash / and literal . and _ and -
-# Note the - needs to be last in the re group
-STRING_SAFE_CHAR_RE = "[a-zA-Z0-9/\._-]"
-
 
 def validate_string(string,additional_safe_chars=''):
     if additional_safe_chars:
         allowed_chars = re.sub('-]','%s-]' % additional_safe_chars,
-            STRING_SAFE_CHAR_RE)
+            settings.STRING_SAFE_CHAR_RE)
     else:
-        allowed_chars = STRING_SAFE_CHAR_RE
+        allowed_chars = settings.STRING_SAFE_CHAR_RE
     for char in string:
         if not re.search(allowed_chars, char):
             raise NameError('disallowed character (%s) in string: %s' % 
@@ -58,7 +53,7 @@ def validate_settings_strings():
     """
     logger = logs.get_logger()
     logger.info('checking settings strings to ensure they only contain safe'
-        ' chars: %s' % STRING_SAFE_CHAR_RE)
+        ' chars: %s' % settings.STRING_SAFE_CHAR_RE)
     # check strings are safe
     current_settings = get_current_settings()
     for key in current_settings:

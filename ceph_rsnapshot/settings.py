@@ -15,6 +15,11 @@ DEFAULT_CONFIG_HIERARCHY = [
 
 LOG_FORMAT = ("%(asctime)s [%(levelname)-5.5s] [%(name)s] %(message)s")
 
+# allowed characters in settings strings here:
+# alphanumeric, forward slash / and literal . and _ and -
+# Note the - needs to be last in the re group
+STRING_SAFE_CHAR_RE = "[a-zA-Z0-9/\._-]"
+
 
 SETTINGS = dict(
     CEPH_HOST='localhost',
