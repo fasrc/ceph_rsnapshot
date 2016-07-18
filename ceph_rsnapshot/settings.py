@@ -6,6 +6,8 @@ import tempfile
 import yaml
 import logging
 
+from ceph_rsnapshot import logs
+
 # first one found in this list is the one used
 DEFAULT_CONFIG_HIERARCHY = [
     'ceph_rsnapshot.yaml',
