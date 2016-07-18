@@ -50,9 +50,9 @@ SETTINGS = dict(
     IMAGE_RE=r'^one(-[0-9]+){1,3}$',
     RETAIN_INTERVAL='daily',
     RETAIN_NUMBER=14,
-    # date format string to pass to `date` to get snap naming,
-    # iso format %Y-%m-%d would yield names like imagename@2016-10-04
-    # TODO use this everywhere instead of date --iso
+    # date format string to pass to `date` to get ceph snapshot naming,
+    # iso format %Y-%m-%d would yield names like imagename@2016-07-18
+    # match this to what your external ceph snapshot creation script is using
     SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',
     # min freespace to leave on ceph node for exporting qcow temporarily
     MIN_FREESPACE=5 * 1024 * 1024 * 1024,  # 5GB

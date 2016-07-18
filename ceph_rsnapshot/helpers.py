@@ -12,9 +12,14 @@ from ceph_rsnapshot import logs
 STRING_SAFE_CHAR_RE = "[a-zA-Z0-9/\._-]"
 
 
-def validate_string(string):
+def validate_string(string,additional_safe_chars=''):
+    if additional_safe_chars:
+        allowed_chars = re.sub('-]','%s-]' % additional_safe_chars,
+            STRING_SAFE_CHAR_RE)
+    else:
+        allowed_chars = STRING_SAFE_CHAR_RE
     for char in string:
-        if not re.search(STRING_SAFE_CHAR_RE, char):
+        if not re.search(allowed_chars, char):
             raise NameError('disallowed character (%s) in string: %s' % 
                             (char, string))
     return True
@@ -57,7 +62,10 @@ def validate_settings_strings():
     # check strings are safe
     current_settings = get_current_settings()
     for key in current_settings:
-        if key in ['IMAGE_RE', 'SNAP_NAMING_DATE_FORMAT']:
+        additional_safe_chars=''
+        if key == 'SNAP_NAMING_DATE_FORMAT':
+            additional_safe_chars='%'
+        if key in ['IMAGE_RE']:
             # these are allowed to have weird characters
             continue
         value = current_settings[key]
@@ -73,7 +81,8 @@ def validate_settings_strings():
                     validate_string(pool)
                 # if here then they all validated
                 continue
-            if validate_string(value):
+            if validate_string(value,
+                               additional_safe_chars=additional_safe_chars):
                 continue
         except NameError as e:
             # bad character in a string, fail run

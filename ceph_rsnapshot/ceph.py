@@ -11,15 +11,14 @@ from ceph_rsnapshot import helpers
 
 
 def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
-               snapnamingformat=''):
+               snap_naming_date_format=''):
     """ ssh to ceph host and check for a snapshot
     """
     logger = logs.get_logger()
-    # TODO use snap name format
-    if not snapnamingformat:
-        snapnamingformat = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
     if not snap:
-        snap = get_today()
+        snap = get_today(snap_naming_date_format=snap_naming_date_format)
     if not pool:
         pool = settings.POOL
     if not cephhost:
@@ -47,7 +46,7 @@ def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''
 
 
 def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
-                snapnamingformat='', image_re=''):
+                snap_naming_date_format='', image_re=''):
     """ ssh to ceph node and get list of rbd images that match snap naming
         format
     """
@@ -60,8 +59,8 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
         cephuser = settings.CEPH_USER
     if not cephcluster:
         cephcluster = settings.CEPH_CLUSTER
-    if not snapnamingformat:
-        snapnamingformat = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
     if not image_re:
         image_re = settings.IMAGE_RE
     RBD_LS_COMMAND = ('rbd ls %s --id=%s --cluster=%s --format=json' %
@@ -142,11 +141,13 @@ def get_freespace(path=''):
         raise
 
 
-def get_today():
+def get_today(snap_naming_date_format=''):
     """get todays date in iso format, this can run on either node
     """
-    # TODO use settings.SNAP_NAMING_FORMAT
-    return sh.date('--iso').strip('\n')
+    logger=self.get_logger()
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    return sh.date('+%s' % snap_naming_date_format).strip('\n')
 
 
 def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''):
