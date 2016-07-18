@@ -19,17 +19,19 @@ SETTINGS = dict(
     CEPH_CLUSTER='ceph',
     # POOLS is a comma separated list of pools to backup; can be a single pool
     POOLS='rbd',
-    # POOL singular is for internal use only
-    POOL='rbd',
+    # NOTE: POOL singular is for internal use only
+    POOL='',
     # path for the temporary export of qcows
     QCOW_TEMP_PATH='/tmp/qcows/',
-    EXTRA_ARGS='',
     # prefix for temp dir to store temporary rsnapshot conf files
     TEMP_CONF_DIR_PREFIX='ceph_rsnapshot_temp_conf_',
     # or can override and set whole dir
     TEMP_CONF_DIR='',
-    BACKUP_BASE_PATH='/backups/vms',
+    # whether to keep temp rsnap config files
     KEEPCONF=False,
+    # base path for backup qcows to land
+    BACKUP_BASE_PATH='/backups/ceph-rsnapshot',
+    # base path for logs, and also rsnap logs
     LOG_BASE_PATH='/var/log/ceph_rsnapshot',
     LOG_FILENAME='ceph_rsnapshot.log',
     # TODO allow specifying alt path to a jinja template
@@ -43,19 +45,23 @@ SETTINGS = dict(
     # on an artificially restrictive image_re and don't want to cycle the other
     # backups
     NO_ROTATE_ORPHANS=False,
+    # IMAGE_RE - an RE to filter ceph rbd images to back up
     # opennebula images are one-NN
     # vms are one-NN-XX-YY for image NN vm XX and disk YY
     # images or vms are (with the additional accidental acceptance of one-NN-XX
-    # RE to filter ceph rbd images to back up
     IMAGE_RE=r'^one(-[0-9]+){1,3}$',
+    # rsnapshot parameters
     RETAIN_INTERVAL='daily',
     RETAIN_NUMBER=14,
+    # extra arguments to pass to rsnapshot
+    EXTRA_ARGS='',
     # date format string to pass to `date` to get ceph snapshot naming,
     # iso format %Y-%m-%d would yield names like imagename@2016-07-18
     # match this to what your external ceph snapshot creation script is using
     SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',
-    # min freespace to leave on ceph node for exporting qcow temporarily
+    # min free bytes to leave on ceph node for exporting qcow temporarily
     MIN_FREESPACE=5 * 1024 * 1024 * 1024,  # 5GB
+    # enable for extra logging for sh calls
     SH_LOGGING=False,
 
 )
