@@ -124,8 +124,8 @@ def get_freespace(path=''):
     logger = logs.get_logger()
     if not path:
         path = "%s/%s" % (settings.QCOW_TEMP_PATH, settings.POOL)
-    DF_COMMAND = "df -P %s | grep / | awk '{print $4}';"
-                 " ( exit ${PIPESTATUS[0]} )" % path
+    DF_COMMAND = ("df -P %s | grep / | awk '{print $4}';"
+                  " ( exit ${PIPESTATUS[0]} )" % path)
     try:
         free_space_kb = sh.ssh(settings.CEPH_HOST, DF_COMMAND)
         free_space_bytes = int(free_space_kb.stdout) * 1024
