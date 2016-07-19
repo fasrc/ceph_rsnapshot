@@ -90,6 +90,7 @@ def setup_temp_conf_dir_for_pool(pool=''):
                 raise
     else:
         try:
+            logger.info('making a tempdir for rsnap confs')
             temp_conf_dir = make_empty_tempdir(
                 prefix=settings.TEMP_CONF_DIR_PREFIX)
             # store this in global settings
@@ -186,7 +187,7 @@ def make_empty_tempdir(prefix=''):
     if not prefix:
         prefix = 'empty_'
     if settings.NOOP:
-        logger.info('would have made an empty tempdir')
+        logger.info('would have made a tempdir with prefix %s' % prefix)
         return 'noop_fake_empty_path_with_prefix_%s' % prefix
     else:
         logger.info('creating tempdir with prefix %s' % prefix)
