@@ -30,53 +30,78 @@ SETTINGS = dict(
     CEPH_HOST='localhost',
     CEPH_USER='admin',
     CEPH_CLUSTER='ceph',
+
     # POOLS is a comma separated list of pools to backup; can be a single pool
     POOLS='rbd',
-    # NOTE: POOL singular is for internal use only
+
+    # NOTE: POOL singular is for internal use only,
+    # it will be overwritten if specified. Use POOLS above
     POOL='',
+
     # path for the temporary export of qcows
+    # this script will create this directory
+    # and will chmod the final directory of it 700
     QCOW_TEMP_PATH='/tmp/qcows',
+
     # prefix for temp dir to store temporary rsnapshot conf files
     TEMP_CONF_DIR_PREFIX='ceph_rsnapshot_temp_conf_',
-    # or can override and set whole dir
+
+    # ...or can override and set whole dir
+    # this script will create this directory if it does not exist
     TEMP_CONF_DIR='',
+
     # whether to keep temp rsnap config files
+    # note if temp_conf_dir is specified, and keepconf is not specified,
+    # then this script will set keepconf true
     KEEPCONF=False,
+
     # base path for backup qcows to land
+    # this script will create this path if it does not exits
+    # and it will chmod 700 the final directory of it
     BACKUP_BASE_PATH='/backups/ceph_rsnapshot',
+
     # base path for logs, and also rsnap logs
+    # this script will create this path
+    # and will chmod the final directory of it 700
     LOG_BASE_PATH='/home/ceph_rsnapshot/logs',
     LOG_FILENAME='ceph_rsnapshot.log',
+
     # TODO allow specifying alt path to a jinja template
     # TEMPLATE = '',
     VERBOSE=False,
+
     # noop means don't make any changes to the system - no log dirs, no backup
     # dirs, no actual exporting of qcows, etc. Logging goes to stdout only,
     # this includes dumps of the rsnap config files
     NOOP=False,
+
     # set this to true to suppress rotating orphans. useful if testing a backup
     # on an artificially restrictive image_re and don't want to cycle the other
     # backups
     NO_ROTATE_ORPHANS=False,
+
     # IMAGE_RE - an RE to filter ceph rbd images to back up
     # opennebula images are one-NN
     # vms are one-NN-XX-YY for image NN vm XX and disk YY
     # images or vms are (with the additional accidental acceptance of one-NN-XX
     IMAGE_RE=r'^one(-[0-9]+){1,3}$',
+
     # rsnapshot parameters
     RETAIN_INTERVAL='daily',
     RETAIN_NUMBER=14,
     # extra arguments to pass to rsnapshot
     EXTRA_ARGS='',
+
     # date format string to pass to `date` to get ceph snapshot naming,
     # iso format %Y-%m-%d would yield names like imagename@2016-07-18
     # match this to what your external ceph snapshot creation script is using
     SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',
+
     # min free bytes to leave on ceph node for exporting qcow temporarily
     MIN_FREESPACE=5 * 1024 * 1024 * 1024,  # 5GB
+
     # enable for extra logging for sh calls
     SH_LOGGING=False,
-
 )
 
 
