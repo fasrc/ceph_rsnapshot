@@ -34,7 +34,7 @@ def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''
         rbd_check_result = sh.ssh(cephhost, RBD_CHECK_SNAP_COMMAND)
     except sh.ErrorReturnCode as e:
         # this just means no snap found, log but don't raise
-        logger.info('no snap found for image %s' % image)
+        logger.warning('no snap found for image %s' % image)
         # return false we didn't find one
         return False
     except Exception as e:
@@ -207,7 +207,7 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
         cephcluster = settings.CEPH_CLUSTER
     if not noop:
         noop = settings.NOOP
-    logger.info('exporting image %s@%s from pool %s on ceph host %s cluster %s'
+    logger.info('going to export image %s@%s from pool %s on ceph host %s cluster %s'
                 ' as user %s' % (image, snap, pool, cephhost, cephcluster,
                 cephuser))
 
@@ -275,7 +275,7 @@ def remove_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     temp_qcow_file = ("%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH,
                                           settings.POOL, image))
     logger.info("deleting temp qcow from path %s on ceph host %s" %
-                (image, cephhost))
+                (temp_qcow_file, cephhost))
     SSH_RM_QCOW_COMMAND = 'rm %s' % temp_qcow_file
     try:
         if settings.NOOP:
