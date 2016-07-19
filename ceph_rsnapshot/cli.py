@@ -66,7 +66,7 @@ def rotate_orphans(orphans, pool=''):
             dirs.check_empty_dir(empty_tempdir)
         except NameError as e:
             logger.error('error with verifying temp empty source,'
-                         ' cannot rotate orphans. error: ' % e)
+                         ' cannot rotate orphans. error: %s' % e)
             # fail out
             return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate':
                     [orphan for orphan in orphans if orphan not in orphans_rotated]})
