@@ -23,6 +23,7 @@ STRING_SAFE_CHAR_RE = "[a-zA-Z0-9/\._-]"
 # some settings need extra characters allowed
 ADDITIONAL_SAFE_CHARS = dict(
     SNAP_NAMING_DATE_FORMAT='%',
+    EXTRA_ARGS=" ",
 )
 
 
