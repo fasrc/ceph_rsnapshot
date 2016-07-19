@@ -187,7 +187,7 @@ def make_empty_tempdir(prefix=''):
     if not prefix:
         prefix = 'empty_'
     if settings.NOOP:
-        logger.info('would have made a tempdir with prefix %s' % prefix)
+        logger.info('NOOP: would have made a tempdir with prefix %s' % prefix)
         return 'noop_fake_empty_path_with_prefix_%s' % prefix
     else:
         logger.info('creating tempdir with prefix %s' % prefix)
@@ -200,7 +200,7 @@ def remove_empty_dir(directory):
     """
     logger = logs.get_logger()
     if settings.NOOP:
-        logger.info('would have removed %s' % directory)
+        logger.info('NOOP: would have removed %s' % directory)
     else:
         logger.info('removing %s' % directory)
         os.rmdir(directory)
@@ -214,9 +214,9 @@ def remove_temp_conf_dir():
         logger.info("removing temp conf dir %s" % settings.TEMP_CONF_DIR)
         try:
             if settings.NOOP:
-                logger.info('would have removed temp conf dirs %s/%s and %s' %
-                            (settings.TEMP_CONF_DIR, settings.POOL,
-                             settings.TEMP_CONF_DIR))
+                logger.info('NOOP: would have removed temp conf dirs %s/%s and'
+                            ' %s' % (settings.TEMP_CONF_DIR, settings.POOL,
+                            settings.TEMP_CONF_DIR))
             else:
                 # TODO all pools
                 os.rmdir("%s/%s" % (settings.TEMP_CONF_DIR, settings.POOL))
