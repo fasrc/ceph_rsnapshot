@@ -68,8 +68,8 @@ def rotate_orphans(orphans, pool=''):
             return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate':
                     [orphan for orphan in orphans if orphan not in orphans_rotated]})
         # note this uses temp_path on the dest - which we check to be empty
-        # note also create path with . in it so rsync relative works
-        source = "%s/empty_source/./" % settings.QCOW_TEMP_PATH
+        # note needs to end in a trailing /
+        source = "%s/empty_source/" % settings.QCOW_TEMP_PATH
         conf_file = templates.write_conf(orphan,
                                          pool=pool,
                                          source=source,
@@ -144,7 +144,6 @@ def rsnap_image_sh(image, pool=''):
 def rsnap_image(image, pool='', template=None):
     if not pool:
         pool = settings.POOL
-    # temp_path: note the . needed to set where to relative from
     temp_path = settings.QCOW_TEMP_PATH
     extra_args = settings.EXTRA_ARGS
 

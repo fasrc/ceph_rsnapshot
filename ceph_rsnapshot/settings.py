@@ -30,7 +30,7 @@ SETTINGS = dict(
     # NOTE: POOL singular is for internal use only
     POOL='',
     # path for the temporary export of qcows
-    QCOW_TEMP_PATH='/tmp/qcows/',
+    QCOW_TEMP_PATH='/tmp/qcows',
     # prefix for temp dir to store temporary rsnapshot conf files
     TEMP_CONF_DIR_PREFIX='ceph_rsnapshot_temp_conf_',
     # or can override and set whole dir

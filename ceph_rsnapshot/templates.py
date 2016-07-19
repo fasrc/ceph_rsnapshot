@@ -17,7 +17,6 @@ def write_conf(image, pool='', source='', template=''):
     if not pool:
         pool = settings.POOL
     host = settings.CEPH_HOST
-    # temp_path: note the . needed to set where to relative from
     temp_path = settings.QCOW_TEMP_PATH
     backup_base_path = settings.BACKUP_BASE_PATH
 
@@ -29,9 +28,8 @@ def write_conf(image, pool='', source='', template=''):
         template = get_template()
 
     # create source path string if an override wasn't passed to us
-    # set the . to get rsync to do relative from there
     if source == '':
-        source = 'root@%s:%s/%s/./%s.qcow2' % (
+        source = 'root@%s:%s/%s/%s.qcow2' % (
             settings.CEPH_HOST, settings.QCOW_TEMP_PATH, pool, image)
 
     destination = '%s/%s/%s' % (settings.BACKUP_BASE_PATH,
