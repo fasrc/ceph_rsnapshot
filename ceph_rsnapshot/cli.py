@@ -57,19 +57,22 @@ def rotate_orphans(orphans, pool=''):
 
     template = templates.get_template()
 
+    empty_tempdir = dirs.make_empty_tempdir()
+
     for orphan in orphans:
         logger.info('rotating orphan: %s' % orphan)
         try:
-            dirs.make_empty_source()  # do this every time to be sure it's empty
+            # do this every time to be sure it's empty
+            dirs.check_empty_dir(empty_tempdir)
         except NameError as e:
-            logger.error('error with creating or verifying temp empty source,'
+            logger.error('error with verifying temp empty source,'
                          ' cannot rotate orphans. error: ' % e)
             # fail out
             return({'orphans_rotated': orphans_rotated, 'orphans_failed_to_rotate':
                     [orphan for orphan in orphans if orphan not in orphans_rotated]})
         # note this uses temp_path on the dest - which we check to be empty
         # note needs to end in a trailing /
-        source = "%s/empty_source/" % settings.QCOW_TEMP_PATH
+        source = "%s/" % empty_tempdir
         conf_file = templates.write_conf(orphan,
                                          pool=pool,
                                          source=source,
@@ -98,6 +101,8 @@ def rotate_orphans(orphans, pool=''):
         # unless flag to keep it for debug
         if not settings.KEEPCONF:
             templates.remove_conf(orphan, pool)
+
+    dirs.remove_empty_dir(empty_tempdir)
 
     # TODO now check for any image dirs that are entirely empty and remove
     # them (and the empty daily.NN inside them)

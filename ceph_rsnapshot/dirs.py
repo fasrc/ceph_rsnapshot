@@ -5,6 +5,7 @@ import tempfile
 import sh
 
 
+
 def check_set_dir_perms(directory, perms=0o700):
     logger = logs.get_logger()
     desired_mode = oct(perms)[-3:]
@@ -22,7 +23,24 @@ def check_set_dir_perms(directory, perms=0o700):
                                                                  directory))
 
 
+def setup_dir(directory):
+    logger = logs.get_logger()
+    if not os.path.isdir(directory):
+        # make dir and preceeding dirs if necessary
+        if settings.NOOP:
+            logger.info('NOOP: would have run makedirs on path %s' % directory)
+        else:
+            logger.info('creating directory 0700 %s' % directory)
+            os.makedirs(directory, 0700)
+    else:
+        logger.info('directory %s already exists, so using it' % directory)
+        # still need to check perms
+        check_set_dir_perms(directory)
+
+
 def setup_backup_dirs_for_pool(pool='', dirs=''):
+    """ wrapper of the above to setup backup dirs
+    """
     logger = logs.get_logger()
     if not pool:
         pool = settings.POOL
@@ -39,6 +57,8 @@ def setup_backup_dirs_for_pool(pool='', dirs=''):
 
 
 def setup_log_dirs_for_pool(pool=''):
+    """ wrapper of the above to setup log dirs
+    """
     logger = logs.get_logger()
     if not pool:
         pool = settings.POOL
@@ -52,52 +72,35 @@ def setup_log_dirs_for_pool(pool=''):
 
 
 def setup_temp_conf_dir_for_pool(pool=''):
+    """ setup temp conf dir for rsnap confs
+        if provided, use, otherwise make temp dir
+    """
     if not pool:
         pool = settings.POOL
     logger = logs.get_logger()
     if settings.TEMP_CONF_DIR:
-        # if it's been set, use it
         if os.path.isdir(settings.TEMP_CONF_DIR):
             logger.info('using temp conf dir %s' % settings.TEMP_CONF_DIR)
         else:
             try:
-                if settings.NOOP:
-                    logger.info('NOOP: would have made temp dir %s' %
-                                settings.TEMP_CONF_DIR)
-                else:
-                    os.makedirs(settings.TEMP_CONF_DIR)
-                    logger.info('created temp dir at %s' %
-                                settings.TEMP_CONF_DIR)
+                setup_dir(settings.TEMP_CONF_DIR)
             except IOError as e:
                 logger.error('Cannot create conf temp dir (or intermediate dirs) from' +
                              ' setting %s with error %s' % (settings.TEMP_CONF_DIR, e))
-                sys.exit(1)
+                raise
     else:
-        # if not, make one
         try:
-            if settings.NOOP:
-                logger.info('NOOP: would have made temp dir with mkdtemp'
-                            ' prefix: %s' % settings.TEMP_CONF_DIR_PREFIX)
-                temp_conf_dir = '/tmp/ceph_rsnapshot_mkdtemp_noop_fake_path'
-            else:
-                temp_conf_dir = tempfile.mkdtemp(
-                    prefix=settings.TEMP_CONF_DIR_PREFIX)
-                logger.info('created temp conf dir: %s' % temp_conf_dir)
+            temp_conf_dir = make_empty_tempdir(
+                prefix=settings.TEMP_CONF_DIR_PREFIX)
             # store this in global settings
             settings.TEMP_CONF_DIR = temp_conf_dir
         except IOError as e:
             logger.error('cannot create conf temp dir with error %s' % e)
-            sys.exit(1)
+            raise
     # now make for pool
-    if settings.NOOP:
-        logger.info('NOOP: would have made temp conf subdir for pool %s' % pool)
-    else:
-        logger.info('creating temp conf subdir for pool %s' % pool)
-        os.mkdir("%s/%s" % (settings.TEMP_CONF_DIR, pool), 0700)
+    pool_conf_dir = "%s/%s" % (settings.TEMP_CONF_DIR, pool)
+    setup_dir(pool_conf_dir)
     return settings.TEMP_CONF_DIR
-
-# make path to export qcows to
-# FIXME do this for all pools from the main loop
 
 
 def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
@@ -165,69 +168,54 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
         raise
 
 
-# check that empty_source is empty
-# this is used to rotate orphans
-# TODO make this use an empty tempdir
-def make_empty_source():
-    # TODO make this use mkdtemp
-    empty_source_path = "%s/empty_source/" % settings.QCOW_TEMP_PATH
-    # get logger we setup earlier
-    logger = logs.get_logger()
-    try:
-        dirlist = os.listdir(empty_source_path)
+def check_empty_dir(directory):
+    """ check a dir is empty
+    """
+    if os.path.isdir(directory):
+        dirlist = os.listdir(path)
         if len(dirlist) != 0:
-            raise NameError('ERROR: empty_source_path %s exists and is not'
-                            ' empty' % empty_source_path)
-    except OSError as e:
-        if e.errno == 2:
-            # OSError 2 is No such file or directory, so make it
-            if settings.NOOP:
-                logger.info('NOOP: would have made temp empty source at %s' %
-                            empty_source_path)
-            else:
-                logger.info('creating temp empty source path %s' %
-                            empty_source_path)
-                try:
-                    os.makedirs(empty_source_path, 0700)
-                except Exception as e:
-                    logger.error('error making empty source %s' % e)
-                    raise
-        else:
-            logger.error('other error with listing source dir %s' % e)
-            raise
-
-
-def setup_dir(directory):
-    logger = logs.get_logger()
-    # make the if it doesn't exist
-    if not os.path.isdir(directory):
-        # make dir and preceeding dirs if necessary
-        if settings.NOOP:
-            logger.info('NOOP: would have run makedirs on path %s' % directory)
-        else:
-            os.makedirs(directory, 0700)
+            raise NameError('ERROR: directory %s is not empty' % directory)
     else:
-        logger.info('directory %s already exists, so using it' % directory)
-        # still need to check perms
-        check_set_dir_perms(directory)
+        raise NameError('directory %s does not exist' % directory)
 
 
-def setup_dir_per_pool(directory):
+def make_empty_tempdir(prefix=''):
+    """ make an empty tempdir
+    """
     logger = logs.get_logger()
-    # for pool in settings.POOLS
-    #   dirs.append(pool)
-    #   setup_dir(dirs)
-    pass
+    if not prefix:
+        prefix = 'empty_'
+    if settings.NOOP:
+        logger.info('would have made an empty tempdir')
+        return 'noop_fake_empty_path_with_prefix_%s' % prefix
+    else:
+        logger.info('creating tempdir with prefix %s' % prefix)
+        empty_tempdir = tempfile.mkdtemp(prefix=prefix)
+        return empty_tempdir
+
+
+def remove_empty_dir(directory):
+    """ remove a directory if it's empty
+    """
+    logger = logs.get_logger()
+    if settings.NOOP:
+        logger.info('would have removed %s' % directory)
+    else:
+        logger.info('removing %s' % directory)
+        os.rmdir(directory)
 
 
 def remove_temp_conf_dir():
+    """ remove temp conf dirs
+    """
     logger = logs.get_logger()
     if not settings.KEEPCONF:
         logger.info("removing temp conf dir %s" % settings.TEMP_CONF_DIR)
         try:
             if settings.NOOP:
                 logger.info('would have removed temp conf dirs %s/%s and %s' %
-                            (settings.TEMP_CONF_DIR, settings.POOL, settings.TEMP_CONF_DIR))
+                            (settings.TEMP_CONF_DIR, settings.POOL,
+                             settings.TEMP_CONF_DIR))
             else:
                 # TODO all pools
                 os.rmdir("%s/%s" % (settings.TEMP_CONF_DIR, settings.POOL))
