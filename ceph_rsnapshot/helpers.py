@@ -57,11 +57,13 @@ def validate_settings_strings():
     # check strings are safe
     current_settings = get_current_settings()
     for key in current_settings:
-        additional_safe_chars=''
-        if key == 'SNAP_NAMING_DATE_FORMAT':
-            additional_safe_chars='%'
+        if key in settings.ADDITIONAL_SAFE_CHARS:
+            additional_safe_chars = settings.ADDITIONAL_SAFE_CHARS[key]
+        else:
+            additional_safe_chars=''
         if key in ['IMAGE_RE']:
             # these are allowed to have weird characters
+            # also this is only used in this script as a RE
             continue
         value = current_settings[key]
         if type(value) in [bool, int]:
@@ -73,7 +75,8 @@ def validate_settings_strings():
                 pools_arr = value.split(',')
                 for pool in pools_arr:
                     logger.info('checking string for pool %s' % pool)
-                    validate_string(pool)
+                    validate_string(pool,
+                        additional_safe_chars=additional_safe_chars)
                 # if here then they all validated
                 continue
             if validate_string(value,
