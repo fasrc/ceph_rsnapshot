@@ -372,10 +372,6 @@ def ceph_rsnapshot():
     else:
         settings.load_settings()
 
-    logger = logs.setup_logging()
-    logger.info("starting ceph_rsnapshot")
-    logger.info("launched with cli args: " + " ".join(sys.argv))
-
     # override global settings with cli args
     # TODO get this working this way
     # for key in args.__dict__.keys():
@@ -399,6 +395,10 @@ def ceph_rsnapshot():
         settings.IMAGE_RE = args.image_re
     if args.__contains__('no_rotate_orphans'):
         settings.NO_ROTATE_ORPHANS = args.no_rotate_orphans
+
+    logger = logs.setup_logging()
+    logger.info("starting ceph_rsnapshot")
+    logger.info("launched with cli args: " + " ".join(sys.argv))
 
     try:
         helpers.validate_settings_strings()
