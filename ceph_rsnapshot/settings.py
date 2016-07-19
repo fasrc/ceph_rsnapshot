@@ -38,9 +38,10 @@ SETTINGS = dict(
     # it will be overwritten if specified. Use POOLS above
     POOL='',
 
-    # path for the temporary export of qcows
-    # this script will create this directory
-    # and will chmod the final directory of it 700
+    # path on the ceph node to use for the temporary export of qcows
+    # if it does not exist, the script will create it and intervening dirs
+    # also this script will create subdirectories for each pool
+    # and will chmod those pool directories 700
     QCOW_TEMP_PATH='/tmp/qcows',
 
     # prefix for temp dir to store temporary rsnapshot conf files
@@ -55,14 +56,16 @@ SETTINGS = dict(
     # then this script will set keepconf true
     KEEPCONF=False,
 
-    # base path for backup qcows to land
-    # this script will create this path if it does not exits
-    # and it will chmod 700 the final directory of it
+    # base path on this node for backup qcows to land
+    # this script will chmod the final directory of it 700
+    # also if it does not exist, the script will create it
+    # and any intervening directories also 700
     BACKUP_BASE_PATH='/backups/ceph_rsnapshot',
 
-    # base path for logs, and also rsnap logs
-    # this script will create this path
-    # and will chmod the final directory of it 700
+    # base path for logs, and also rsnapshot logs
+    # this script will chmod the final directory of it 700
+    # also if it does not exist, the script will create it
+    # and any intervening directories also 700
     LOG_BASE_PATH='/home/ceph_rsnapshot/logs',
     LOG_FILENAME='ceph_rsnapshot.log',
 
