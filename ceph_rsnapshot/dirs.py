@@ -173,7 +173,7 @@ def check_empty_dir(directory):
     """ check a dir is empty
     """
     if os.path.isdir(directory):
-        dirlist = os.listdir(path)
+        dirlist = os.listdir(directory)
         if len(dirlist) != 0:
             raise NameError('ERROR: directory %s is not empty' % directory)
     else:
