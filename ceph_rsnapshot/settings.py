@@ -45,7 +45,7 @@ SETTINGS = dict(
     # base path for backup qcows to land
     BACKUP_BASE_PATH='/backups/ceph_rsnapshot',
     # base path for logs, and also rsnap logs
-    LOG_BASE_PATH='/var/log/ceph_rsnapshot',
+    LOG_BASE_PATH='/home/ceph_rsnapshot/logs',
     LOG_FILENAME='ceph_rsnapshot.log',
     # TODO allow specifying alt path to a jinja template
     # TEMPLATE = '',
