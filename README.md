@@ -31,7 +31,7 @@ Setup on the backup node:
     CEPH_HOST
     CEPH_USER
     CEPH_CLUSTER
-    POOL
+    POOLS                    # comma separated list of pools to backup; can be a single pool
     QCOW_TEMP_PATH           # path for the temporary export of qcows
     EXTRA_ARGS               # extra args to pass to rsnapshot
     TEMP_CONF_DIR_PREFIX     # prefix for temp dir to store temporary rsnapshot conf files
@@ -50,17 +50,18 @@ Setup on the backup node:
     MIN_FREESPACE            # min freespace to leave on ceph node for exporting qcow temporarily
     SH_LOGGING               # verbose log for sh module
 
+
 ## Entry points
 
 ### ceph_rsnapshot
 
-This will ssh to the ceph node ("source") and gather a list of vm images to backup (runs gathernames).  Then it will iterate over that list, connecting to the ceph node to export each one in turn to qcow in a temp directory, and then running rsnapshot to backup that one qcow, then connecting again to the ceph node to remove the temp qcow.
+This will ssh to the ceph node ("source") and gather a list of rbd devices to back up.  Then it will iterate over that list, connecting to the ceph node to export each one in turn to qcow in a temp directory, and then running rsnapshot to backup that one qcow, then connecting again to the ceph node to remove the temp qcow.
 
 The qcow images go into (on the backup node): <BACKUP_BASE_PATH>/<POOL>/<image-name>/<daily.NN>/<image-name>.qcow2
 
 This script will also rotate orphaned images that no longer exist on the source (by running rsnap with an empty source), so they will roll off after retain_interval.
 
-Errors log to /var/log/ceph-rsnapshot/ (or LOG_BASE_PATH) and print to stdout.
+Log messages print to stdout and log to /home/ceph_rsnapshot/logs (or LOG_BASE_PATH).
 
 Parameters:
 
@@ -76,7 +77,9 @@ Parameters:
       -c CONFIG, --config CONFIG
                             path to alternate config file
       --host HOST           ceph node to backup from
-      -p POOL, --pool POOL  ceph pool to back up
+      -p POOLS, --pools POOLS
+                            comma separated list ofceph pools to back up (can be a
+                            single pool)
       --image_re IMAGE_RE   RE to match images to back up
       -v, --verbose         verbose logging output
       --noop                noop - don't make any directories or do any actions.
