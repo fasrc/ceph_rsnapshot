@@ -482,8 +482,12 @@ def ceph_rsnapshot():
         logger.info('Successfully backed up images: ' +
             ', '.join(successful_images))
         if all_result['failed']:
-            logger.error("Failed:")
-            logger.error(all_result['failed'])
+            logger.error("Images failed to back up:")
+            failed_images_status = [{"%s/%s" % (image_hash['pool'],
+                image_hash['image']): [{check: False} for check in
+                image_hash['status'] if image_hash['status'][check] is False]}
+                for image_hash in all_result['failed']]
+            logger.error(failed_images_status)
         if all_result['orphans_rotated']:
             logger.info("orphans rotated:")
             logger.info(all_result['orphans_rotated'])
