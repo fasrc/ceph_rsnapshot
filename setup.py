@@ -77,6 +77,7 @@ setup(
     install_requires=['sh',
                       'pyyaml',
                       'jinja2',
+                      'argparse',
                      ],
 
     # List additional groups of dependencies here (e.g. development
