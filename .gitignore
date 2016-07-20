@@ -1,3 +1,4 @@
 ceph_rsnapshot.egg-info/
 __pycache__
 *~
+*.pyc
