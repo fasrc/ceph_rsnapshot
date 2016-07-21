@@ -159,7 +159,8 @@ def get_snapdate(snap_naming_date_format='', snap_date=''):
                    date=snap_date).strip('\n')
 
 
-def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''):
+def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='',
+        cephcluster='', snap_naming_date_format='', snap_date=''):
     """ssh to ceph node check the size of this image@snap
     """
     logger = logs.get_logger()
