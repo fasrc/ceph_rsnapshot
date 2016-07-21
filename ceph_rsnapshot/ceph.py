@@ -155,8 +155,8 @@ def get_snapdate(snap_naming_date_format='', snap_date=''):
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
     if not snap_date:
         snap_date = settings.SNAP_DATE
-    return sh.date('+"%s" --date="%s"' % (snap_naming_date_format,
-                   snap_date)).strip('\n'),
+    return sh.date('+"%s"' % snap_naming_date_format,
+                   date=snap_date).strip('\n')
 
 
 def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''):
