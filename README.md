@@ -47,6 +47,7 @@ Setup on the backup node:
     RETAIN_INTERVAL
     RETAIN_NUMBER
     SNAP_NAMING_DATE_FORMAT  # date format string to pass to `date` to get snap naming; iso format %Y-%m-%d would yield names like imagename@2016-10-04
+    SNAP_DATE                # date string to pass to `date --date` to get the day of the snap to back up, examples 'today' or '1 day ago'
     MIN_FREESPACE            # min freespace to leave on ceph node for exporting qcow temporarily
     SH_LOGGING               # verbose log for sh module
 

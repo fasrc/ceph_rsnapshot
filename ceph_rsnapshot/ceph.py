@@ -11,14 +11,17 @@ from ceph_rsnapshot import helpers
 
 
 def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
-               snap_naming_date_format=''):
+               snap_naming_date_format='', snap_date=''):
     """ ssh to ceph host and check for a snapshot
     """
     logger = logs.get_logger()
     if not snap_naming_date_format:
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
     if not snap:
-        snap = get_today(snap_naming_date_format=snap_naming_date_format)
+        snap = get_snapdate(snap_naming_date_format=snap_naming_date_format,
+                            snap_date=snap_date)
     if not pool:
         pool = settings.POOL
     if not cephhost:
@@ -46,7 +49,7 @@ def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''
 
 
 def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
-                snap_naming_date_format='', image_re=''):
+                snap_naming_date_format='', image_re='', snap_date=''):
     """ ssh to ceph node and get list of rbd images that match snap naming
         format
     """
@@ -61,6 +64,8 @@ def gathernames(pool='', cephhost='', cephuser='', cephcluster='',
         cephcluster = settings.CEPH_CLUSTER
     if not snap_naming_date_format:
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
     if not image_re:
         image_re = settings.IMAGE_RE
     RBD_LS_COMMAND = ('rbd ls %s --id=%s --cluster=%s --format=json' %
@@ -142,21 +147,29 @@ def get_freespace(path=''):
         raise
 
 
-def get_today(snap_naming_date_format=''):
+def get_snapdate(snap_naming_date_format='', snap_date=''):
     """get todays date in iso format, this can run on either node
     """
     logger=logs.get_logger()
     if not snap_naming_date_format:
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
-    return sh.date('+%s' % snap_naming_date_format).strip('\n')
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
+    return sh.date('+"%s" --date="%s"' % (snap_naming_date_format,
+                   snap_date)).strip('\n'),
 
 
 def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='', cephcluster=''):
     """ssh to ceph node check the size of this image@snap
     """
     logger = logs.get_logger()
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
     if not snap:
-        snap = get_today()
+        snap = get_snapdate(snap_naming_date_format=snap_naming_date_format,
+                            snap_date=snap_date)
     if not pool:
         pool = settings.POOL
     if not cephhost:
@@ -191,13 +204,18 @@ def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='', cephcluster=
 
 
 def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
-                noop=None):
+                noop=None, snap_naming_date_format='', snap_date=''):
     """ssh to ceph node, check free space vs rbd provisioned size, 
         and export a qcow to qcow_temp_path/pool/imagename.qcow2
     """
     logger = logs.get_logger()
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
     if not snap:
-        snap = get_today()
+        snap = get_snapdate(snap_naming_date_format=snap_naming_date_format,
+                            snap_date=snap_date)
     if not pool:
         pool = settings.POOL
     if not cephhost:
@@ -254,14 +272,12 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     return elapsed_time_ms
 
 
-def remove_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
+def remove_qcow(image, pool='', cephhost='', cephuser='', cephcluster='',
                 noop=None):
     """ ssh to ceph node and remove a qcow from path
         qcow_temp_path/pool/imagename.qcow2
     """
     logger = logs.get_logger()
-    if not snap:
-        snap = get_today()
     if not pool:
         pool = settings.POOL
     if not cephhost:

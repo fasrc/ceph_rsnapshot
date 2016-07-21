@@ -104,6 +104,10 @@ SETTINGS = dict(
     # match this to what your external ceph snapshot creation script is using
     SNAP_NAMING_DATE_FORMAT='%Y-%m-%d',
 
+    # string argument to pass to `date --date "<string>"` to generate snap name
+    # to back up. examples "today" or "1 day ago"
+    SNAP_DATE="today",
+
     # min free bytes to leave on ceph node for exporting qcow temporarily
     MIN_FREESPACE=5 * 1024 * 1024 * 1024,  # 5GB
 
