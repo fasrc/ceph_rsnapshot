@@ -43,6 +43,7 @@ def get_current_settings():
         RETAIN_NUMBER=settings.RETAIN_NUMBER,
         EXTRA_ARGS=settings.EXTRA_ARGS,
         SNAP_NAMING_DATE_FORMAT=settings.SNAP_NAMING_DATE_FORMAT,
+        SNAP_DATE=settings.SNAP_DATE,
         MIN_FREESPACE=settings.MIN_FREESPACE,
         SH_LOGGING=settings.SH_LOGGING,
     ))
