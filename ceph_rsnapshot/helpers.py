@@ -34,6 +34,7 @@ def get_current_settings():
         BACKUP_BASE_PATH=settings.BACKUP_BASE_PATH,
         LOG_BASE_PATH=settings.LOG_BASE_PATH,
         LOG_FILENAME=settings.LOG_FILENAME,
+        STATUS_FILENAME=settings.STATUS_FILENAME,
         VERBOSE=settings.VERBOSE,
         NOOP=settings.NOOP,
         NO_ROTATE_ORPHANS=settings.NO_ROTATE_ORPHANS,
