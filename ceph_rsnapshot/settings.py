@@ -70,6 +70,9 @@ SETTINGS = dict(
     LOG_BASE_PATH='/home/ceph_rsnapshot/logs',
     LOG_FILENAME='ceph_rsnapshot.log',
 
+    # file to write out nagios readable status output at the end of each run
+    STATUS_FILENAME='ceph_rsnapshot.status',
+
     # TODO allow specifying alt path to a jinja template
     # TEMPLATE = '',
     VERBOSE=False,
