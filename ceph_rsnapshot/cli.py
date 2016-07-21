@@ -333,6 +333,39 @@ def rsnap_pool(pool):
             })
 
 
+def write_status(all_result):
+    """ write status to LOG_BASE_PATH/STATUS_FILENAME
+    """
+    status_file = open("%s/%s" % (settings.LOG_BASE_PATH,
+                                  settings.STATUS_FILENAME),'w')
+    # write header
+    if all_result['failed']:
+        status_file.write("CRITICAL some rbd devices failed to back up|")
+    elif all_result['orphans_failed_to_rotate']:
+        status_file.write('WARNING all rbd devices backed up successfully but'
+            'some orphans failed to rotate|')
+    else:
+        status_file.write('OK completed successfully|')
+    # now write number counts
+    for key in all_result.keys():
+        status_file.write("num_%s=%s " % (key, len(all_result[key])))
+    # now write details in perf data format for nagios
+    if all_result['failed']:
+        failed_images = ["%s/%s" % (image_hash['pool'],
+            image_hash['image']) for image_hash in all_result['failed']]
+        failed_images_string = " ".join(["%s=failed" % image for image in
+            failed_images])
+        status_file.write('%s ' % failed_images_string)
+    if all_result['orphans_failed_to_rotate']:
+        failed_orphans = ["%s/%s" % (orphan_hash['pool'],
+            orphan_hash['orphan']) for orphan_hash in
+            all_result['orphans_failed_to_rotate']]
+        failed_orphans_string = " ".join(["%s=orphan_failed_to_rotate" % orphan
+            for orphan in failed_orphans])
+        status_file.write('%s ' % failed_orphans_string)
+    status_file.close()
+
+
 # if not cli then check env
 
 # enty for the rsnap node
@@ -494,6 +527,7 @@ def ceph_rsnapshot():
         if all_result['orphans_failed_to_rotate']:
             logger.error("orphans failed to rotate:")
             logger.error(all_result['orphans_failed_to_rotate'])
+        write_status(all_result)
         logger.info("done")
     finally:
         # done with this pool so clear the pidfile
