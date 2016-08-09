@@ -439,8 +439,9 @@ def ceph_rsnapshot():
         logger.error('error with settings strings: %s' % e)
         sys.exit(1)
 
-    # convert snap_date (might be relative) to an absolute date for this run
-    settings.SNAP_DATE = sh.date('--iso',date=settings.SNAP_DATE)
+    # convert snap_date (might be relative) to an absolute date
+    # so that it's only computed once for this entire run
+    settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
 
     # print out settings using and exit
     if args.__contains__('printsettings'):
