@@ -505,7 +505,7 @@ def ceph_rsnapshot():
                 # TODO get some way to still have the list of images that
                 # it completed before failing
                 logger.error('rsnap pool %s failed error: %s' % (pool, e))
-                raise
+                logger.exception(e)
             except Exception as e:
                 logger.error('error with pool %s' % pool)
                 logger.exception(e)
