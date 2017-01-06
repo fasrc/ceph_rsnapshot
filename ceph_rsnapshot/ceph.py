@@ -243,8 +243,8 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     # build source and dest strings
     qemu_source_string = ("rbd:%s/%s@%s:id=%s:conf=/etc/ceph/%s.conf" %
                           (pool, image, snap, cephuser, cephcluster))
-    qemu_dest_string = "%s/%s/%s.qcow2" % (
-        settings.QCOW_TEMP_PATH, pool, image)
+    qemu_dest_string = "%s/%s/%s-%s.qcow2" % (
+        settings.QCOW_TEMP_PATH, pool, image, snap)
     # do the export
     QEMU_IMG_COMMAND = ('qemu-img convert %s %s -f raw'
                         ' -O qcow2' % (qemu_source_string, qemu_dest_string))
