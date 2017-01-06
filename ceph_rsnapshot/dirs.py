@@ -170,7 +170,9 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
         raise
 
 
-def check_qcow_temp_path_empty_for_pool(qcowtemppath='', pool=''):
+def check_qcow_temp_path_empty_for_pool(cephhost='', qcowtemppath='', pool=''):
+    if not cephhost:
+        cephhost = settings.CEPH_HOST
     if not qcowtemppath:
         qcowtemppath = settings.QCOW_TEMP_PATH
     if not pool:
