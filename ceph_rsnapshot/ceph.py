@@ -274,11 +274,18 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
 
 
 def remove_qcow(image, pool='', cephhost='', cephuser='', cephcluster='',
-                noop=None):
+                snap_naming_date_format='', snap_date='', snap='', noop=None):
     """ ssh to ceph node and remove a qcow from path
         qcow_temp_path/pool/imagename.qcow2
     """
     logger = logs.get_logger()
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
+    if not snap:
+        snap = get_snapdate(snap_naming_date_format=snap_naming_date_format,
+                            snap_date=snap_date)
     if not pool:
         pool = settings.POOL
     if not cephhost:
@@ -290,8 +297,8 @@ def remove_qcow(image, pool='', cephhost='', cephuser='', cephcluster='',
         cephcluster = settings.CEPH_CLUSTER
     if not noop:
         noop = settings.NOOP
-    temp_qcow_file = ("%s/%s/%s.qcow2" % (settings.QCOW_TEMP_PATH,
-                                          settings.POOL, image))
+    temp_qcow_file = ("%s/%s/%s-%s.qcow2" % (settings.QCOW_TEMP_PATH,
+                                          settings.POOL, image, snap))
     logger.info("deleting temp qcow from path %s on ceph host %s" %
                 (temp_qcow_file, cephhost))
     SSH_RM_QCOW_COMMAND = 'rm %s' % temp_qcow_file
