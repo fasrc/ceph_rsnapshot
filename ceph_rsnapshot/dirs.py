@@ -170,7 +170,8 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
         raise
 
 
-def check_qcow_temp_path_empty_for_pool(cephhost='', qcowtemppath='', pool=''):
+def check_qcow_temp_path_empty_for_pool(cephhost='', qcowtemppath='', pool='',
+        noop=None):
     if not cephhost:
         cephhost = settings.CEPH_HOST
     if not qcowtemppath:
@@ -181,6 +182,9 @@ def check_qcow_temp_path_empty_for_pool(cephhost='', qcowtemppath='', pool=''):
         cephhost = settings.CEPH_HOST
     if not noop:
         noop = settings.NOOP
+    if noop:
+        # this dir might not exist yet so just say it's good and move on
+        return True
     temp_path = '%s/%s' % (qcowtemppath, pool)
     logger.info('checking qcow temp export path %s is empty on ceph host'
                 ' %s' % (temp_path, cephhost))
