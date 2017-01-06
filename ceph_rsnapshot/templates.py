@@ -13,7 +13,7 @@ def get_template():
     return template
 
 
-def write_conf(image, pool='', source='', template=''
+def write_conf(image, pool='', source='', template='',
                snap_naming_date_format='', snap_date='', snap=''):
     if not snap_naming_date_format:
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
