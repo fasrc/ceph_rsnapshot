@@ -243,7 +243,7 @@ def export_qcow(image, snap='', pool='', cephhost='', cephuser='', cephcluster='
     # build source and dest strings
     qemu_source_string = ("rbd:%s/%s@%s:id=%s:conf=/etc/ceph/%s.conf" %
                           (pool, image, snap, cephuser, cephcluster))
-    qemu_dest_string = "%s/%s/%s-%s.qcow2" % (
+    qemu_dest_string = "%s/%s/%s@%s.qcow2" % (
         settings.QCOW_TEMP_PATH, pool, image, snap)
     # do the export
     QEMU_IMG_COMMAND = ('qemu-img convert %s %s -f raw'
@@ -297,7 +297,7 @@ def remove_qcow(image, pool='', cephhost='', cephuser='', cephcluster='',
         cephcluster = settings.CEPH_CLUSTER
     if not noop:
         noop = settings.NOOP
-    temp_qcow_file = ("%s/%s/%s-%s.qcow2" % (settings.QCOW_TEMP_PATH,
+    temp_qcow_file = ("%s/%s/%s@%s.qcow2" % (settings.QCOW_TEMP_PATH,
                                           settings.POOL, image, snap))
     logger.info("deleting temp qcow from path %s on ceph host %s" %
                 (temp_qcow_file, cephhost))
