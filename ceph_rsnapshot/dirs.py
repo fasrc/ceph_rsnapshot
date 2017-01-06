@@ -195,9 +195,8 @@ def check_qcow_temp_path_empty_for_pool(cephhost='', qcowtemppath='', pool='',
         if ls_result == EMPTY_DIR_LS_RESULT:
             return True
         else:
-            logger.error('ERROR: temp qcow export directory %s not empty',
-                         temp_path)
-            logger.exception(e.stderr)
+            logger.error('ERROR: temp qcow export directory %s not empty: %s',
+                         temp_path, ls_result)
     except sh.ErrorReturnCode as e:
         logger.error('error checking temp qcow export directory')
         logger.exception(e.stderr)
