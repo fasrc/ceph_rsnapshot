@@ -4,7 +4,9 @@ import sys
 import tempfile
 import sh
 
-
+EMPTY_DIR_LS_RESULT =""".
+..
+"""
 
 def check_set_dir_perms(directory, perms=0o700):
     logger = logs.get_logger()
@@ -150,7 +152,6 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
         logger.error('error checking temp qcow export directory')
         logger.exception(e)
         raise
-    # we rsnap an individual qcow so we don't need to check it's emoty
     logger.info('using qcow temp path: %s' % temp_path)
     # now just to be safe verify perms on it are 700
     try:
@@ -165,6 +166,37 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
         raise
     except Exception as e:
         logger.error('error chmodding qcow temp dir')
+        logger.exception(e)
+        raise
+
+
+def check_qcow_temp_path_empty_for_pool(qcowtemppath='', pool=''):
+    if not qcowtemppath:
+        qcowtemppath = settings.QCOW_TEMP_PATH
+    if not pool:
+        pool = settings.POOL
+    if not cephhost:
+        cephhost = settings.CEPH_HOST
+    if not noop:
+        noop = settings.NOOP
+    temp_path = '%s/%s' % (qcowtemppath, pool)
+    logger.info('checking qcow temp export path %s is empty on ceph host'
+                ' %s' % (temp_path, cephhost))
+    LS_COMMAND = 'ls -a %s' % temp_path
+    try:
+        ls_result = sh.ssh(cephhost, LS_COMMAND)
+        if ls_result == EMPTY_DIR_LS_RESULT:
+            return True
+        else:
+            logger.error('ERROR: temp qcow export directory %s not empty',
+                         temp_path)
+            logger.exception(e.stderr)
+    except sh.ErrorReturnCode as e:
+        logger.error('error checking temp qcow export directory')
+        logger.exception(e.stderr)
+        raise
+    except Exception as e:
+        logger.error('error checking temp qcow export directory')
         logger.exception(e)
         raise
 

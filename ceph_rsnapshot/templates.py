@@ -37,8 +37,8 @@ def write_conf(image, pool='', source='', template='',
 
     # create source path string if an override wasn't passed to us
     if source == '':
-        source = 'root@%s:%s/%s/%s@%s.qcow2' % (
-            settings.CEPH_HOST, settings.QCOW_TEMP_PATH, pool, image, snap)
+        source = 'root@%s:%s/%s' % (
+            settings.CEPH_HOST, settings.QCOW_TEMP_PATH, pool)
 
     destination = '%s/%s/%s' % (settings.BACKUP_BASE_PATH,
                                 settings.POOL, image)
