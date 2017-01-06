@@ -172,6 +172,7 @@ def setup_qcow_temp_path(pool='', cephhost='', qcowtemppath='', noop=None):
 
 def check_qcow_temp_path_empty_for_pool(cephhost='', qcowtemppath='', pool='',
         noop=None):
+    logger = logs.get_logger()
     if not cephhost:
         cephhost = settings.CEPH_HOST
     if not qcowtemppath:
