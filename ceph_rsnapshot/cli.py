@@ -174,11 +174,12 @@ def rsnap_image(image, pool='', template=None):
 
     # make sure temp qcow dir is empty
     try:
-        if check_qcow_temp_path_empty_for_pool(pool=pool):
+        if dirs.check_qcow_temp_path_empty_for_pool(pool=pool):
             qcow_temp_path_empty = True
-    except:
+    except Exception as e:
         # if it's not empty, fail this image
         logger.error('qcow temp path not empty, failing this image')
+        logger.exception(e)
         qcow_temp_path_empty = False
 
     # ssh to source and export temp qcow of this image
