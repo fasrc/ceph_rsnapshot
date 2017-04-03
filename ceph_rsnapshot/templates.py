@@ -45,7 +45,7 @@ def write_conf(image, pool='', source='', template=''):
                                   retain_interval=settings.RETAIN_INTERVAL,
                                   retain_number=settings.RETAIN_NUMBER,
                                   log_base_path=settings.LOG_BASE_PATH,
-                                  subdir='',
+                                  subdir='.',
                                   extra_args=settings.EXTRA_ARGS)
 
     if settings.NOOP:
