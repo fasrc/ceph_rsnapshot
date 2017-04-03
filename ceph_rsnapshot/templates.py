@@ -1,4 +1,4 @@
-from ceph_rsnapshot import settings, logs, dirs
+from ceph_rsnapshot import settings, logs, dirs, ceph
 import tempfile
 import sys
 import os
@@ -13,7 +13,15 @@ def get_template():
     return template
 
 
-def write_conf(image, pool='', source='', template=''):
+def write_conf(image, pool='', source='', template='',
+               snap_naming_date_format='', snap_date='', snap=''):
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    if not snap_date:
+        snap_date = settings.SNAP_DATE
+    if not snap:
+        snap = ceph.get_snapdate(snap_naming_date_format=snap_naming_date_format,
+                            snap_date=snap_date)
     if not pool:
         pool = settings.POOL
     host = settings.CEPH_HOST
@@ -28,9 +36,10 @@ def write_conf(image, pool='', source='', template=''):
         template = get_template()
 
     # create source path string if an override wasn't passed to us
+    # note using the . to tell rsnap where to start the relative dir
     if source == '':
-        source = 'root@%s:%s/%s/%s.qcow2' % (
-            settings.CEPH_HOST, settings.QCOW_TEMP_PATH, pool, image)
+        source = 'root@%s:%s/%s/.' % (
+            settings.CEPH_HOST, settings.QCOW_TEMP_PATH, pool)
 
     destination = '%s/%s/%s' % (settings.BACKUP_BASE_PATH,
                                 settings.POOL, image)
@@ -45,7 +54,7 @@ def write_conf(image, pool='', source='', template=''):
                                   retain_interval=settings.RETAIN_INTERVAL,
                                   retain_number=settings.RETAIN_NUMBER,
                                   log_base_path=settings.LOG_BASE_PATH,
-                                  subdir='',
+                                  subdir='.',
                                   extra_args=settings.EXTRA_ARGS)
 
     if settings.NOOP:

@@ -159,6 +159,7 @@ def rsnap_image(image, pool='', template=None):
     logger = logs.get_logger()
     logger.info('working on image %s in pool %s' % (image, pool))
     # setup flags
+    qcow_temp_path_empty = False
     export_qcow_ok = False
     rsnap_ok = False
     remove_qcow_ok = False
@@ -171,19 +172,30 @@ def rsnap_image(image, pool='', template=None):
     conf_file = templates.write_conf(image, pool=pool, template=template)
     logger.info(conf_file)
 
-    # ssh to source and export temp qcow of this image
+    # make sure temp qcow dir is empty
     try:
-        ceph.export_qcow(image, pool=pool)
-        export_qcow_ok = True
-    except NameError as e:
-        # probably not enough space. set to false and try to go and remove this
-        # one, or go to next image in case it was temporary
-        logger.error('error from export qcow: %s' % e)
-        export_qcow_ok = False
+        if dirs.check_qcow_temp_path_empty_for_pool(pool=pool):
+            qcow_temp_path_empty = True
     except Exception as e:
-        logger.error('error from export qcow')
+        # if it's not empty, fail this image
+        logger.error('qcow temp path not empty, failing this image')
         logger.exception(e)
-        export_qcow_ok = False
+        qcow_temp_path_empty = False
+
+    # ssh to source and export temp qcow of this image
+    if qcow_temp_path_empty:
+        try:
+            ceph.export_qcow(image, pool=pool)
+            export_qcow_ok = True
+        except NameError as e:
+            # probably not enough space. set to false and try to go and remove this
+            # one, or go to next image in case it was temporary
+            logger.error('error from export qcow: %s' % e)
+            export_qcow_ok = False
+        except Exception as e:
+            logger.error('error from export qcow')
+            logger.exception(e)
+            export_qcow_ok = False
 
     # if exported ok, then rsnap this image
     if export_qcow_ok:
@@ -219,6 +231,7 @@ def rsnap_image(image, pool='', template=None):
             'pool': pool,
             'successful': successful,
             'status': {
+                'qcow_temp_path_empty': qcow_temp_path_empty,
                 'export_qcow_ok': export_qcow_ok,
                 'rsnap_ok': rsnap_ok,
                 'remove_qcow_ok': remove_qcow_ok
