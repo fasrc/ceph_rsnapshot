@@ -493,7 +493,7 @@ def ceph_rsnapshot():
                 settings.SNAP_DATE = ceph.check_snap_status_file()
                 logger.info('using snap date %s' % settings.SNAP_DATE)
             except:
-                logger.info('no status file found, exiting run')
+                logger.info('no snap_status file found, exiting run')
                 raise
         # convert snap_date (might be relative) to an absolute date
         # so that it's only computed once for this entire run
