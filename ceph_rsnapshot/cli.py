@@ -452,16 +452,16 @@ def ceph_rsnapshot():
         logger.error('error with settings strings: %s' % e)
         sys.exit(1)
 
-    # check if we have been passed SNAP_STATUS_FILE
-    if settings.USE_SNAP_STATUS_FILE:
-        pass
-
-    # convert snap_date (might be relative) to an absolute date
-    # so that it's only computed once for this entire run
-    settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
 
     # print out settings using and exit
     if args.__contains__('printsettings'):
+        # generate SNAP_DATE for printsettings
+        if settings.USE_SNAP_STATUS_FILE:
+            settings.SNAP_DATE = 'TBD from SNAP_STATUS_FILE'
+        else:
+            # convert snap_date (might be relative) to an absolute date
+            # so that it's only computed once for this entire run
+            settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
         # if it's there it's true
         logger.info('settings would have been:\n')
         logger.info(json.dumps(helpers.get_current_settings(), indent=2))
@@ -481,9 +481,20 @@ def ceph_rsnapshot():
         sys.exit(1)
     logger.info("writing lockfile at %s" % pidfile)
     file(pidfile, 'w').write(pid)
+
     try:
         # we've made the lockfile, so rsnap the pools
 
+        # check if we have been passed SNAP_STATUS_FILE
+        if settings.USE_SNAP_STATUS_FILE:
+            try:
+                settings.SNAP_DATE = ceph.check_snap_status_file()
+            except:
+                logger.info('no status file found, exiting run')
+                raise
+        # convert snap_date (might be relative) to an absolute date
+        # so that it's only computed once for this entire run
+        settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
         # clear this so we know if run worked or not
         all_result={}
 
