@@ -12,6 +12,7 @@ from ceph_rsnapshot import helpers
 
 def check_snap_status_file(cephhost='', snap_status_file_path='',
         snap_status_file_prefix=''):
+    logger = logs.get_logger()
     if not cephhost:
         cephhost = settings.CEPH_HOST
     if not snap_status_file_path:
@@ -26,6 +27,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
         snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND)
     except Exception as e:
         logger.exception(e)
+        raise
     logger.info("found: %s" % snap_status_dir_result)
 
 def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
