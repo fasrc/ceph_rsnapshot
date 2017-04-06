@@ -109,6 +109,14 @@ SETTINGS = dict(
     # to back up. examples "today" or "1 day ago"
     SNAP_DATE="today",
 
+    # alternatively, check a status file on the ceph host to see when the snaps
+    # are ready - will check for files of name SNAP_STATUS_FILE_PREFIX*
+    # where the content of the file is the snap name to use
+    # example - write out YYYY-MM-DD when the snapshots are done
+    USE_SNAP_STATUS_FILE=False,
+    SNAP_STATUS_FILE_PATH="/var/spool/ceph-snapshot",
+    SNAP_STATUS_FILE_PREFIX="ready",
+
     # min free bytes to leave on ceph node for exporting qcow temporarily
     MIN_FREESPACE=5 * 1024 * 1024 * 1024,  # 5GB
 

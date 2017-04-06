@@ -452,6 +452,10 @@ def ceph_rsnapshot():
         logger.error('error with settings strings: %s' % e)
         sys.exit(1)
 
+    # check if we have been passed SNAP_STATUS_FILE
+    if settings.USE_SNAP_STATUS_FILE:
+        pass
+
     # convert snap_date (might be relative) to an absolute date
     # so that it's only computed once for this entire run
     settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
