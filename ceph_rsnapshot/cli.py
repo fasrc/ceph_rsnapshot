@@ -484,6 +484,8 @@ def ceph_rsnapshot():
 
     try:
         # we've made the lockfile, so rsnap the pools
+        # clear this so we know if run worked or not
+        all_result={}
 
         # check if we have been passed SNAP_STATUS_FILE
         if settings.USE_SNAP_STATUS_FILE:
@@ -495,8 +497,6 @@ def ceph_rsnapshot():
         # convert snap_date (might be relative) to an absolute date
         # so that it's only computed once for this entire run
         settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
-        # clear this so we know if run worked or not
-        all_result={}
 
         # iterate over pools
         pools_csv = settings.POOLS
