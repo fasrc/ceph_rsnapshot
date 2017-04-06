@@ -542,6 +542,10 @@ def ceph_rsnapshot():
             if not settings.KEEPCONF:
                 dirs.remove_temp_conf_dir()
 
+        # successful, so clean out snap dir
+        logger.info('removing snap_status files on ceph host')
+        ceph.purge_snap_status_dir()
+
         # write output
         successful_images = [('%s/%s' % (image['pool'], image['image'])) for
             image in all_result['successful']]

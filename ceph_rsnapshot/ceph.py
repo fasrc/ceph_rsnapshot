@@ -40,6 +40,34 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
     return snap_date
 
 
+def purge_snap_status_dir(cephhost='', snap_status_file_path='',
+        snap_status_file_prefix='', noop=''):
+    logger = logs.get_logger()
+    if not cephhost:
+        cephhost = settings.CEPH_HOST
+    if not snap_status_file_path:
+        snap_status_file_path = settings.SNAP_STATUS_FILE_PATH
+    if not snap_status_file_prefix:
+        snap_status_file_prefix = settings.SNAP_STATUS_FILE_PREFIX
+    if not noop:
+        noop = settings.NOOP
+    PURGE_SNAP_STATUS_DIR_COMMAND = ('rm -fv %s/%s*' % (snap_status_file_path,
+            snap_status_file_prefix))
+    logger.info('removing snap status files in directory %s on ceph host for'
+            ' files of name %s*' % ( snap_status_file_path,
+                snap_status_file_prefix))
+    try:
+        if noop:
+            logger.info('would have run %s' % PURGE_SNAP_STATUS_DIR_COMMAND)
+        else:
+            purge_snap_status_dir_result = sh.ssh(cephhost, PURGE_SNAP_STATUS_DIR_COMMAND)
+    except Exception as e:
+        logger.exception(e)
+        raise
+    logger.info("done: %s" % purge_snap_status_dir_result)
+    return True
+
+
 def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
                snap_naming_date_format='', snap_date=''):
     """ ssh to ceph host and check for a snapshot
