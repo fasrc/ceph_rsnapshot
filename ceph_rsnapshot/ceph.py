@@ -19,7 +19,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
         snap_status_file_path = settings.SNAP_STATUS_FILE_PATH
     if not snap_status_file_prefix:
         snap_status_file_prefix = settings.SNAP_STATUS_FILE_PREFIX
-    CHECK_SNAP_STATUS_DIR_COMMAND = ('ls %s/%s*' % (snap_status_file_path, 
+    CHECK_SNAP_STATUS_DIR_COMMAND = ('ls -t %s/%s*' % (snap_status_file_path,
             snap_status_file_prefix))
     logger.info('checking snap status directory %s on ceph host for files of'
             'name %s*' % ( snap_status_file_path, snap_status_file_prefix))
@@ -29,6 +29,9 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
         logger.exception(e)
         raise
     logger.info("found: %s" % snap_status_dir_result)
+    snap_date = snap_status_dir_result.split('\n')[0]
+    return snap_date
+
 
 def check_snap(image, snap='', pool='', cephhost='', cephuser='', cephcluster='',
                snap_naming_date_format='', snap_date=''):
