@@ -22,9 +22,16 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
     CHECK_SNAP_STATUS_DIR_COMMAND = ('ls -t %s/%s*' % (snap_status_file_path,
             snap_status_file_prefix))
     logger.info('checking snap status directory %s on ceph host for files of'
-            'name %s*' % ( snap_status_file_path, snap_status_file_prefix))
+            ' name %s*' % ( snap_status_file_path, snap_status_file_prefix))
     try:
         snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND)
+    except sh.ErrorReturnCode as e:
+        if e.exit_code == 2:
+            logger.error('no snap_status files found on ceph host, exiting')
+            raise
+        else:
+            logger.exception(e)
+            raise
     except Exception as e:
         logger.exception(e)
         raise
