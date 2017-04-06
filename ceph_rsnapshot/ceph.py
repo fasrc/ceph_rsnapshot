@@ -29,7 +29,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
         logger.exception(e)
         raise
     logger.info("found: %s" % snap_status_dir_result)
-    snap_date = snap_status_dir_result.split('\n')[0]
+    snap_date = snap_status_dir_result.split('\n')[0].split('/')[-1]
     return snap_date
 
 
