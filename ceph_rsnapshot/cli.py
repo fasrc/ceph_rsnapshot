@@ -497,6 +497,7 @@ def ceph_rsnapshot():
                 raise
         # convert snap_date (might be relative) to an absolute date
         # so that it's only computed once for this entire run
+        # FIXME does this need snap naming format
         settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
 
         # iterate over pools
@@ -543,8 +544,10 @@ def ceph_rsnapshot():
                 dirs.remove_temp_conf_dir()
 
         # successful, so clean out snap dir
-        logger.info('removing snap_status files on ceph host')
-        ceph.purge_snap_status_dir()
+        snap_date = ceph.get_snapdate(settings.SNAP_DATE)
+        logger.info('removing snap_status file for snap_date %s on ceph host' %
+                snap_date)
+        ceph.remove_snap_status_file(snap_date=snap_date)
 
         # write output
         successful_images = [('%s/%s' % (image['pool'], image['image'])) for

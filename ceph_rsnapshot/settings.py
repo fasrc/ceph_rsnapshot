@@ -108,6 +108,8 @@ SETTINGS = dict(
     # string argument to pass to `date --date "<string>"` to generate snap name
     # to back up. examples "today" or "1 day ago"
     SNAP_DATE="today",
+    # FIXME - convert to also use a 2nd parameter called SNAP_NAME for after
+    # date has been converted to a string
 
     # alternatively, check a status file on the ceph host to see when the snaps
     # are ready - will check for files of name SNAP_STATUS_FILE_PREFIX*

@@ -10,19 +10,15 @@ from ceph_rsnapshot import settings
 from ceph_rsnapshot import helpers
 
 
-def check_snap_status_file(cephhost='', snap_status_file_path='',
-        snap_status_file_prefix=''):
+def check_snap_status_file(cephhost='', snap_status_file_path='')
     logger = logs.get_logger()
     if not cephhost:
         cephhost = settings.CEPH_HOST
     if not snap_status_file_path:
         snap_status_file_path = settings.SNAP_STATUS_FILE_PATH
-    if not snap_status_file_prefix:
-        snap_status_file_prefix = settings.SNAP_STATUS_FILE_PREFIX
-    CHECK_SNAP_STATUS_DIR_COMMAND = ('ls -t %s/%s*' % (snap_status_file_path,
-            snap_status_file_prefix))
-    logger.info('checking snap status directory %s on ceph host for files of'
-            ' name %s*' % ( snap_status_file_path, snap_status_file_prefix))
+    CHECK_SNAP_STATUS_DIR_COMMAND = ('ls -t %s/*' % snap_status_file_path)
+    logger.info('checking snap status directory %s on ceph host'
+             % snap_status_file_path)
     try:
         snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND)
     except sh.ErrorReturnCode as e:
@@ -35,36 +31,72 @@ def check_snap_status_file(cephhost='', snap_status_file_path='',
     except Exception as e:
         logger.exception(e)
         raise
-    logger.info("found: %s" % snap_status_dir_result)
-    snap_date = snap_status_dir_result.split('\n')[0].split('/')[-1]
+    logger.debug("found: %s" % snap_status_dir_result)
+    snap_dates = [ snap_status_file.split('/')[-1] for snap_status_file in snap_status_dir_result.split('\n')]
+    logger.debug("snap dates:")
+    logger.debug(snap_dates)
+    snap_date = snap_dates[0]
+    try:
+        result = check_formatted_snap_date(snap_date=snap_date)
+    except ValueError as e:
+        logger.error('most recent snap status file error: %s' % e)
+    # if we're here it was a valid date and matches format
+    # remove the rest of them that match
+    for old_snap_date in snap_dates[1:]
+        try:
+            check_formatted_snap_date(snap_date=old_snap_date)
+            # if here then it's a valid date
+            logger.warning('removing old snap_date status file %s because we have'
+                    ' a newer one %s' % (old_snap_date, snap_date))
+            remove_snap_status_file(snap_date=old_snap_date)
+        except:
+            logger.warning('found non-matching snap_status file %s' % old_snap_date)
+            pass
+    logger.info('using snap_date %s found from queue on ceph host' % snap_date)
     return snap_date
 
 
-def purge_snap_status_dir(cephhost='', snap_status_file_path='',
-        snap_status_file_prefix='', noop=''):
+def check_formatted_snap_date(snap_date, snap_naming_date_format=''):
+    if not snap_naming_date_format:
+        snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
+    try:
+        formatted_snap_date = get_snapdate(snap_date=snap_date,
+                snap_naming_date_format=snap_naming_date_format)
+    except sh.ErrorReturnCode as e:
+        if e.exit_code == 1:
+            raise ValueError('snap_date %s is not a valid date' % snap_date)
+        else:
+            raise
+    except Exception as e:
+        raise
+    if formatted_snap_date == snap_date:
+        return True
+    else:
+        raise ValueError('snap_date %s doesn\'t match format "%s"' % (snap_date,
+            snap_naming_date_format)
+
+def remove_snap_status_file(snap_date, cephhost='', snap_status_file_path='',
+        noop=''):
     logger = logs.get_logger()
     if not cephhost:
         cephhost = settings.CEPH_HOST
     if not snap_status_file_path:
         snap_status_file_path = settings.SNAP_STATUS_FILE_PATH
-    if not snap_status_file_prefix:
-        snap_status_file_prefix = settings.SNAP_STATUS_FILE_PREFIX
     if not noop:
         noop = settings.NOOP
-    PURGE_SNAP_STATUS_DIR_COMMAND = ('rm -fv %s/%s*' % (snap_status_file_path,
-            snap_status_file_prefix))
-    logger.info('removing snap status files in directory %s on ceph host for'
-            ' files of name %s*' % ( snap_status_file_path,
-                snap_status_file_prefix))
+    REMOVE_SNAP_STATUS_FILE_COMMAND = ('rm -fv %s/%s' % (snap_status_file_path,
+            snap_date))
+    logger.info('removing snap status file on ceph host with command' %
+            REMOVE_SNAP_STATUS_FILE_COMMAND)
     try:
         if noop:
-            logger.info('would have run %s' % PURGE_SNAP_STATUS_DIR_COMMAND)
+            logger.info('would have run %s' % REMOVE_SNAP_STATUS_FILE_COMMAND)
         else:
-            purge_snap_status_dir_result = sh.ssh(cephhost, PURGE_SNAP_STATUS_DIR_COMMAND)
+            remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND))
     except Exception as e:
         logger.exception(e)
         raise
-    logger.info("done: %s" % purge_snap_status_dir_result)
+    logger.info("done: %s" % remove_snap_status_file_result)
     return True
 
 
