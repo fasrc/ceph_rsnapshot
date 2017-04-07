@@ -44,14 +44,19 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
     # remove the rest of them that match
     for old_snap_date in snap_dates[1:]:
         try:
+            logger.debug('checking old snap date %s' % old_snap_date)
             check_formatted_snap_date(snap_date=old_snap_date)
+        except:
+            logger.warning('found non-matching snap_status file %s' % old_snap_date)
+            pass
+        try:
             # if here then it's a valid date
             logger.warning('removing old snap_date status file %s because we have'
                     ' a newer one %s' % (old_snap_date, snap_date))
             remove_snap_status_file(snap_date=old_snap_date)
-        except:
-            logger.warning('found non-matching snap_status file %s' % old_snap_date)
-            pass
+        except Exception as e:
+            logger.exception(e)
+            raise
     logger.info('using snap_date %s found from queue on ceph host' % snap_date)
     return snap_date
 
