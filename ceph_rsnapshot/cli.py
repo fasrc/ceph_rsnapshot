@@ -479,8 +479,8 @@ def ceph_rsnapshot():
     logger.info("writing lockfile at %s" % pidfile)
     file(pidfile, 'w').write(pid)
 
-    print('running with settings:\n')
-    logger.info(json.dumps(helpers.get_current_settings(), indent=2))
+    logger.debug('running with settings:\n')
+    logger.debug(json.dumps(helpers.get_current_settings(), indent=2))
 
     try:
         # we've made the lockfile, so rsnap the pools
@@ -492,8 +492,11 @@ def ceph_rsnapshot():
             try:
                 settings.SNAP_DATE = ceph.check_snap_status_file()
                 logger.info('using snap date %s' % settings.SNAP_DATE)
-            except:
-                logger.info('no snap_status file found, exiting run')
+            except ValueError as e:
+                logger.warning(e)
+                raise
+            except Exception as e:
+                logger.exception(e)
                 raise
         # convert snap_date (might be relative) to an absolute date
         # so that it's only computed once for this entire run

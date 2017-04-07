@@ -147,7 +147,7 @@ def load_settings(config_file=''):
                 config_file = conf_file
                 break
     # FIXME no logging here yet because we haven't loaded logging yet
-    logger.info('using settings file %s' % config_file)
+    logger.debug('using settings file %s' % config_file)
     settings = SETTINGS.copy()
     user_did_provide_keepconf = False
     if os.path.isfile(config_file):
@@ -165,7 +165,7 @@ def load_settings(config_file=''):
                     user_did_provide_keepconf = True
                 settings[setting.upper()] = cfg[setting]
     else:
-        logger.info('WARNING: not loading config - using default settings')
+        logger.debug('no config file found - using default settings')
     if settings['TEMP_CONF_DIR'] and not user_did_provide_keepconf:
         settings['KEEPCONF'] = True
     globals().update(settings)
