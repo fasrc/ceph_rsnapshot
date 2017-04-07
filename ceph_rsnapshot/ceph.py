@@ -20,7 +20,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
     logger.info('checking snap status directory %s on ceph host'
              % snap_status_file_path)
     try:
-        snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND)
+        snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND).strip('\n')
     except sh.ErrorReturnCode as e:
         if e.exit_code == 2:
             logger.error('no snap_status files found on ceph host, exiting')
@@ -93,7 +93,7 @@ def remove_snap_status_file(snap_date, cephhost='', snap_status_file_path='',
             logger.info('would have run %s' % REMOVE_SNAP_STATUS_FILE_COMMAND)
             remove_snap_status_file_result = 'noop'
         else:
-            remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND)
+            remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND).strip('\n')
     except Exception as e:
         logger.exception(e)
         raise
