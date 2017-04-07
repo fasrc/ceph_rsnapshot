@@ -444,7 +444,7 @@ def ceph_rsnapshot():
 
     logger = logs.setup_logging()
     logger.info("starting ceph_rsnapshot")
-    logger.info("launched with cli args: " + " ".join(sys.argv))
+    logger.debug("launched with cli args: " + " ".join(sys.argv))
 
     try:
         helpers.validate_settings_strings()
@@ -467,9 +467,6 @@ def ceph_rsnapshot():
         logger.info(json.dumps(helpers.get_current_settings(), indent=2))
         logger.info('exiting')
         sys.exit(0)
-    else:
-        print('running with settings:\n')
-        logger.info(json.dumps(helpers.get_current_settings(), indent=2))
 
     # write lockfile
     # TODO do this per ceph host or per ceph cluster
@@ -481,6 +478,9 @@ def ceph_rsnapshot():
         sys.exit(1)
     logger.info("writing lockfile at %s" % pidfile)
     file(pidfile, 'w').write(pid)
+
+    print('running with settings:\n')
+    logger.info(json.dumps(helpers.get_current_settings(), indent=2))
 
     try:
         # we've made the lockfile, so rsnap the pools

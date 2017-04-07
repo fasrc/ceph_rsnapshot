@@ -56,7 +56,7 @@ def validate_settings_strings():
         if not fail run
     """
     logger = logs.get_logger()
-    logger.info('checking settings strings to ensure they only contain safe'
+    logger.debug('checking settings strings to ensure they only contain safe'
         ' chars: %s' % settings.STRING_SAFE_CHAR_RE)
     # check strings are safe
     current_settings = get_current_settings()
@@ -75,10 +75,10 @@ def validate_settings_strings():
             continue
         try:
             if key == 'POOLS':
-                logger.info('checking pools string %s' % value)
+                logger.debug('checking pools string %s' % value)
                 pools_arr = value.split(',')
                 for pool in pools_arr:
-                    logger.info('checking string for pool %s' % pool)
+                    logger.debug('checking string for pool %s' % pool)
                     validate_string(pool,
                         additional_safe_chars=additional_safe_chars)
                 # if here then they all validated
@@ -92,4 +92,4 @@ def validate_settings_strings():
                 ' error %s' % (key, e))
         except Exception as e:
             raise
-    logger.info('all settings strings ok')
+    logger.debug('all settings strings ok')
