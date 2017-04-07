@@ -10,7 +10,7 @@ from ceph_rsnapshot import settings
 from ceph_rsnapshot import helpers
 
 
-def check_snap_status_file(cephhost='', snap_status_file_path='')
+def check_snap_status_file(cephhost='', snap_status_file_path=''):
     logger = logs.get_logger()
     if not cephhost:
         cephhost = settings.CEPH_HOST
@@ -42,7 +42,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path='')
         logger.error('most recent snap status file error: %s' % e)
     # if we're here it was a valid date and matches format
     # remove the rest of them that match
-    for old_snap_date in snap_dates[1:]
+    for old_snap_date in snap_dates[1:]:
         try:
             check_formatted_snap_date(snap_date=old_snap_date)
             # if here then it's a valid date
@@ -73,7 +73,7 @@ def check_formatted_snap_date(snap_date, snap_naming_date_format=''):
         return True
     else:
         raise ValueError('snap_date %s doesn\'t match format "%s"' % (snap_date,
-            snap_naming_date_format)
+            snap_naming_date_format))
 
 def remove_snap_status_file(snap_date, cephhost='', snap_status_file_path='',
         noop=''):
@@ -86,13 +86,14 @@ def remove_snap_status_file(snap_date, cephhost='', snap_status_file_path='',
         noop = settings.NOOP
     REMOVE_SNAP_STATUS_FILE_COMMAND = ('rm -fv %s/%s' % (snap_status_file_path,
             snap_date))
-    logger.info('removing snap status file on ceph host with command' %
+    logger.info('removing snap status file on ceph host with command %s' %
             REMOVE_SNAP_STATUS_FILE_COMMAND)
     try:
         if noop:
             logger.info('would have run %s' % REMOVE_SNAP_STATUS_FILE_COMMAND)
+            remove_snap_status_file_result = 'noop'
         else:
-            remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND))
+            remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND)
     except Exception as e:
         logger.exception(e)
         raise
