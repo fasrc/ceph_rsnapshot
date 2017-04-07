@@ -45,8 +45,7 @@ def get_current_settings():
         SNAP_NAMING_DATE_FORMAT=settings.SNAP_NAMING_DATE_FORMAT,
         SNAP_DATE=settings.SNAP_DATE,
         USE_SNAP_STATUS_FILE=settings.USE_SNAP_STATUS_FILE,
-        SNAP_STATUS_FILE_PREFIX=settings.SNAP_STATUS_FILE_PATH,
-        SNAP_STATUS_FILE_PATH=settings.SNAP_STATUS_FILE_PREFIX,
+        SNAP_STATUS_FILE_PATH=settings.SNAP_STATUS_FILE_PATH,
         MIN_FREESPACE=settings.MIN_FREESPACE,
         SH_LOGGING=settings.SH_LOGGING,
     ))
