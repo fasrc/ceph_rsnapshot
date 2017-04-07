@@ -544,7 +544,7 @@ def ceph_rsnapshot():
                 dirs.remove_temp_conf_dir()
 
         # successful, so clean out snap dir
-        snap_date = ceph.get_snapdate(settings.SNAP_DATE)
+        snap_date = ceph.get_snapdate(snap_date=settings.SNAP_DATE)
         logger.info('removing snap_status file for snap_date %s on ceph host' %
                 snap_date)
         ceph.remove_snap_status_file(snap_date=snap_date)
