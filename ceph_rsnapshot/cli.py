@@ -14,6 +14,7 @@ from ceph_rsnapshot import templates
 from ceph_rsnapshot import dirs
 from ceph_rsnapshot import ceph
 from ceph_rsnapshot import helpers
+from ceph_rsnapshot import exceptions
 
 
 # TODO FIXME add a timeout on the first ssh connection and error
@@ -492,8 +493,14 @@ def ceph_rsnapshot():
             try:
                 settings.SNAP_DATE = ceph.check_snap_status_file()
                 logger.info('using snap date %s' % settings.SNAP_DATE)
-            except ValueError as e:
-                logger.warning(e)
+            except exceptions.NoSnapStatusFilesFoundError as e:
+                e.log(warn=True)
+                raise
+            except exceptions.SnapDateNotValidDateError as e:
+                e.log(warn=True)
+                raise
+            except exceptions.SnapDateFormatMismatchError as e:
+                e.log(warn=True)
                 raise
             except Exception as e:
                 logger.exception(e)

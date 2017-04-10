@@ -41,7 +41,7 @@ class SnapDateFormatMismatchError(CephRsnapshotException):
     """
     Raised when a snap_date does not match format
     """
-    def __init__(self, snap_date, date_format, e):
+    def __init__(self, snap_date, date_format):
         self.msg = ( "Snap date: {snap_date} does not match format:"
                 " {date_format}".format(
                     snap_date=snap_date, date_format=date_format))

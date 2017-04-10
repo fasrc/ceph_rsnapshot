@@ -25,7 +25,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
     except sh.ErrorReturnCode as e:
         if e.exit_code == 2:
             raise exceptions.NoSnapStatusFilesFoundError(cephhost=cephhost,
-                    status_dir=snap_status_file_path)
+                    status_dir=snap_status_file_path, e=e)
         else:
             raise
     logger.debug("found: %s" % snap_status_dir_result)
