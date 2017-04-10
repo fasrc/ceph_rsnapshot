@@ -500,7 +500,7 @@ def ceph_rsnapshot():
                 e.log()
                 raise
             except exceptions.SnapDateFormatMismatchError as e:
-                e.log(warn=True)
+                e.log()
                 raise
             except Exception as e:
                 logger.exception(e)
