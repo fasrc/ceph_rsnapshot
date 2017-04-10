@@ -47,10 +47,10 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
             check_formatted_snap_date(snap_date=old_snap_date)
         except exceptions.SnapDateNotValidDateError as e:
             e.log(warn=True)
-            break
+            continue
         except exceptions.SnapDateFormatMismatchError as e:
             e.log(warn=True)
-            break
+            continue
         # if here then it's a valid date
         logger.warning('removing old snap_date status file %s because we have'
                 ' a newer one %s' % (old_snap_date, snap_date))
