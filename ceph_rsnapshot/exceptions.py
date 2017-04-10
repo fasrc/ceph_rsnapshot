@@ -18,7 +18,7 @@ class CephRsnapshotException(Exception):
             logs.log.error(self.explain(), exc_info=show_tb)
 
 
-class NoSnapFilesFoundError(CephRsnapshotException):
+class NoSnapStatusFilesFoundError(CephRsnapshotException):
     """
     Raised when no snap_status files found on ceph host
     """
