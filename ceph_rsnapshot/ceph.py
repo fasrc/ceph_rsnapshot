@@ -8,6 +8,7 @@ from ceph_rsnapshot import logs
 from ceph_rsnapshot import dirs
 from ceph_rsnapshot import settings
 from ceph_rsnapshot import helpers
+from ceph_rsnapshot import exceptions
 
 
 def check_snap_status_file(cephhost='', snap_status_file_path=''):
@@ -23,38 +24,37 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
         snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND).strip('\n')
     except sh.ErrorReturnCode as e:
         if e.exit_code == 2:
-            raise ValueError('no snap_status files found on ceph host, exiting')
+            raise exceptions.NoSnapStatusFilesFoundError(cephhost=cephhost,
+                    status_dir=snap_status_file_path)
         else:
             raise
-    except Exception as e:
-        logger.exception(e)
-        raise
     logger.debug("found: %s" % snap_status_dir_result)
     snap_dates = [ snap_status_file.split('/')[-1] for snap_status_file in snap_status_dir_result.split('\n')]
     logger.debug("snap dates:")
     logger.debug(snap_dates)
     snap_date = snap_dates[0]
+    logger.debug("checking newest snap_date %s" % snap_date)
     try:
         result = check_formatted_snap_date(snap_date=snap_date)
-    except ValueError as e:
-        logger.error('most recent snap status file error: %s' % e)
+    except exceptions.SnapDateNotValidDateError as e:
+        raise
     # if we're here it was a valid date and matches format
     # remove the rest of them that match
     for old_snap_date in snap_dates[1:]:
+        logger.warn("found old snap_date files- checking and removing if valid dates")
         try:
             logger.debug('checking old snap date %s' % old_snap_date)
             check_formatted_snap_date(snap_date=old_snap_date)
-        except:
-            logger.warning('found non-matching snap_status file %s' % old_snap_date)
-            pass
-        try:
-            # if here then it's a valid date
-            logger.warning('removing old snap_date status file %s because we have'
-                    ' a newer one %s' % (old_snap_date, snap_date))
-            remove_snap_status_file(snap_date=old_snap_date)
-        except Exception as e:
-            logger.exception(e)
-            raise
+        except exceptions.SnapDateNotValidDateError as e:
+            e.log(warn=True)
+            break
+        except exceptions.SnapDateFormatMismatchError as e:
+            e.log(warn=True)
+            break
+        # if here then it's a valid date
+        logger.warning('removing old snap_date status file %s because we have'
+                ' a newer one %s' % (old_snap_date, snap_date))
+        remove_snap_status_file(snap_date=old_snap_date)
     logger.info('using snap_date %s found from queue on ceph host' % snap_date)
     return snap_date
 
@@ -62,21 +62,13 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
 def check_formatted_snap_date(snap_date, snap_naming_date_format=''):
     if not snap_naming_date_format:
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
-    try:
-        formatted_snap_date = get_snapdate(snap_date=snap_date,
-                snap_naming_date_format=snap_naming_date_format)
-    except sh.ErrorReturnCode as e:
-        if e.exit_code == 1:
-            raise ValueError('snap_date %s is not a valid date' % snap_date)
-        else:
-            raise
-    except Exception as e:
-        raise
+    formatted_snap_date = get_snapdate(snap_date=snap_date,
+        snap_naming_date_format=snap_naming_date_format)
     if formatted_snap_date == snap_date:
         return True
     else:
-        raise ValueError('snap_date %s doesn\'t match format "%s"' % (snap_date,
-            snap_naming_date_format))
+        raise exceptions.SnapDateFormatMismatchError(snap_date=snap_date,
+            date_format=snap_naming_date_format)
 
 def remove_snap_status_file(snap_date, cephhost='', snap_status_file_path='',
         noop=''):
@@ -91,15 +83,12 @@ def remove_snap_status_file(snap_date, cephhost='', snap_status_file_path='',
             snap_date))
     logger.info('removing snap status file on ceph host with command %s' %
             REMOVE_SNAP_STATUS_FILE_COMMAND)
-    try:
-        if noop:
-            logger.info('would have run %s' % REMOVE_SNAP_STATUS_FILE_COMMAND)
-            remove_snap_status_file_result = 'noop'
-        else:
-            remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND).strip('\n')
-    except Exception as e:
-        logger.exception(e)
-        raise
+    if noop:
+        logger.info('would have run %s' % REMOVE_SNAP_STATUS_FILE_COMMAND)
+        remove_snap_status_file_result = 'noop'
+    else:
+        remove_snap_status_file_result = sh.ssh(cephhost, REMOVE_SNAP_STATUS_FILE_COMMAND).strip('\n')
+    # TODO handle some errors gracefully here
     logger.info("done removing snap status file: %s" % remove_snap_status_file_result)
     return True
 
@@ -249,8 +238,16 @@ def get_snapdate(snap_naming_date_format='', snap_date=''):
         snap_naming_date_format = settings.SNAP_NAMING_DATE_FORMAT
     if not snap_date:
         snap_date = settings.SNAP_DATE
-    return sh.date('+%s' % snap_naming_date_format,
+    try:
+        converted_snap_date = sh.date('+%s' % snap_naming_date_format,
                    date=snap_date).strip('\n')
+    except sh.ErrorReturnCode as e:
+        if e.exit_code == 1:
+            raise(exceptions.SnapDateNotValidDateError(snap_date=snap_date,
+                date_format=snap_naming_date_format, e=e))
+        else:
+            raise
+    return converted_snap_date
 
 
 def get_rbd_size(image, snap='', pool='', cephhost='', cephuser='',

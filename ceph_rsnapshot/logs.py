@@ -7,6 +7,8 @@ import logging
 from ceph_rsnapshot import settings
 
 
+log = logging.getLogger('ceph_rsnapshot')
+
 # setup logging to file, and if stdout is True, log to stdout as well
 # granularity needed for gathernames replying via ssh
 def setup_logging(stdout=True):
