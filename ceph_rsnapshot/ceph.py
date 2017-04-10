@@ -18,7 +18,7 @@ def check_snap_status_file(cephhost='', snap_status_file_path=''):
     if not snap_status_file_path:
         snap_status_file_path = settings.SNAP_STATUS_FILE_PATH
     CHECK_SNAP_STATUS_DIR_COMMAND = ('ls -t %s/*' % snap_status_file_path)
-    logger.debug('checking snap status directory %s on ceph host'
+    logger.info('checking snap status directory %s on ceph host'
              % snap_status_file_path)
     try:
         snap_status_dir_result = sh.ssh(cephhost, CHECK_SNAP_STATUS_DIR_COMMAND).strip('\n')

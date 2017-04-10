@@ -497,7 +497,7 @@ def ceph_rsnapshot():
                 e.log(warn=True)
                 raise
             except exceptions.SnapDateNotValidDateError as e:
-                e.log(warn=True)
+                e.log()
                 raise
             except exceptions.SnapDateFormatMismatchError as e:
                 e.log(warn=True)
