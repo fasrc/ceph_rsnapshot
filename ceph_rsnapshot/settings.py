@@ -108,6 +108,15 @@ SETTINGS = dict(
     # string argument to pass to `date --date "<string>"` to generate snap name
     # to back up. examples "today" or "1 day ago"
     SNAP_DATE="today",
+    # FIXME - convert to also use a 2nd parameter called SNAP_NAME for after
+    # date has been converted to a string
+
+    # alternatively, check a status file on the ceph host to see when the snaps
+    # are ready - will check for files where the name of the file is the snap
+    # name to use
+    # example - write out YYYY-MM-DD when the snapshots are done
+    USE_SNAP_STATUS_FILE=False,
+    SNAP_STATUS_FILE_PATH="/var/spool/ceph-snapshot",
 
     # min free bytes to leave on ceph node for exporting qcow temporarily
     MIN_FREESPACE=5 * 1024 * 1024 * 1024,  # 5GB
@@ -138,7 +147,7 @@ def load_settings(config_file=''):
                 config_file = conf_file
                 break
     # FIXME no logging here yet because we haven't loaded logging yet
-    logger.info('using settings file %s' % config_file)
+    logger.debug('using settings file %s' % config_file)
     settings = SETTINGS.copy()
     user_did_provide_keepconf = False
     if os.path.isfile(config_file):
@@ -156,7 +165,7 @@ def load_settings(config_file=''):
                     user_did_provide_keepconf = True
                 settings[setting.upper()] = cfg[setting]
     else:
-        logger.info('WARNING: not loading config - using default settings')
+        logger.debug('no config file found - using default settings')
     if settings['TEMP_CONF_DIR'] and not user_did_provide_keepconf:
         settings['KEEPCONF'] = True
     globals().update(settings)

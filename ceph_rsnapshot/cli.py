@@ -14,6 +14,7 @@ from ceph_rsnapshot import templates
 from ceph_rsnapshot import dirs
 from ceph_rsnapshot import ceph
 from ceph_rsnapshot import helpers
+from ceph_rsnapshot import exceptions
 
 
 # TODO FIXME add a timeout on the first ssh connection and error
@@ -444,7 +445,7 @@ def ceph_rsnapshot():
 
     logger = logs.setup_logging()
     logger.info("starting ceph_rsnapshot")
-    logger.info("launched with cli args: " + " ".join(sys.argv))
+    logger.debug("launched with cli args: " + " ".join(sys.argv))
 
     try:
         helpers.validate_settings_strings()
@@ -452,20 +453,21 @@ def ceph_rsnapshot():
         logger.error('error with settings strings: %s' % e)
         sys.exit(1)
 
-    # convert snap_date (might be relative) to an absolute date
-    # so that it's only computed once for this entire run
-    settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
 
     # print out settings using and exit
     if args.__contains__('printsettings'):
+        # generate SNAP_DATE for printsettings
+        if settings.USE_SNAP_STATUS_FILE:
+            settings.SNAP_DATE = 'TBD from SNAP_STATUS_FILE'
+        else:
+            # convert snap_date (might be relative) to an absolute date
+            # so that it's only computed once for this entire run
+            settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
         # if it's there it's true
         logger.info('settings would have been:\n')
         logger.info(json.dumps(helpers.get_current_settings(), indent=2))
         logger.info('exiting')
         sys.exit(0)
-    else:
-        print('running with settings:\n')
-        logger.info(json.dumps(helpers.get_current_settings(), indent=2))
 
     # write lockfile
     # TODO do this per ceph host or per ceph cluster
@@ -477,11 +479,36 @@ def ceph_rsnapshot():
         sys.exit(1)
     logger.info("writing lockfile at %s" % pidfile)
     file(pidfile, 'w').write(pid)
+
+    logger.debug('running with settings:\n')
+    logger.debug(json.dumps(helpers.get_current_settings(), indent=2))
+
     try:
         # we've made the lockfile, so rsnap the pools
-
         # clear this so we know if run worked or not
         all_result={}
+
+        # check if we have been passed SNAP_STATUS_FILE
+        if settings.USE_SNAP_STATUS_FILE:
+            try:
+                settings.SNAP_DATE = ceph.check_snap_status_file()
+                logger.info('using snap date %s' % settings.SNAP_DATE)
+            except exceptions.NoSnapStatusFilesFoundError as e:
+                e.log(warn=True)
+                raise
+            except exceptions.SnapDateNotValidDateError as e:
+                e.log()
+                raise
+            except exceptions.SnapDateFormatMismatchError as e:
+                e.log()
+                raise
+            except Exception as e:
+                logger.exception(e)
+                raise
+        # convert snap_date (might be relative) to an absolute date
+        # so that it's only computed once for this entire run
+        # FIXME does this need snap naming format
+        settings.SNAP_DATE = sh.date(date=settings.SNAP_DATE).strip('\n')
 
         # iterate over pools
         pools_csv = settings.POOLS
@@ -525,6 +552,12 @@ def ceph_rsnapshot():
             logger.info('done with pool %s' % pool)
             if not settings.KEEPCONF:
                 dirs.remove_temp_conf_dir()
+
+        # successful, so clean out snap dir
+        snap_date = ceph.get_snapdate(snap_date=settings.SNAP_DATE)
+        logger.info('removing snap_status file for snap_date %s on ceph host' %
+                snap_date)
+        ceph.remove_snap_status_file(snap_date=snap_date)
 
         # write output
         successful_images = [('%s/%s' % (image['pool'], image['image'])) for
