@@ -40,6 +40,7 @@ Setup on the backup node:
     KEEPCONF                 # keep config files after run finishes
     LOG_BASE_PATH
     LOG_FILENAME
+    STATUS_FILENAME          # file to write out nagios readable status
     VERBOSE
     NOOP
     NO_ROTATE_ORPHANS
@@ -48,6 +49,8 @@ Setup on the backup node:
     RETAIN_NUMBER
     SNAP_NAMING_DATE_FORMAT  # date format string to pass to `date` to get snap naming; iso format %Y-%m-%d would yield names like imagename@2016-10-04
     SNAP_DATE                # date string to pass to `date --date` to get the day of the snap to back up, examples 'today' or '1 day ago'
+    USE_SNAP_STATUS_FILE     # if true, ignore SNAP_DATE and check SNAP_STATUS_FILE_PATH
+    SNAP_STATUS_FILE_PATH    # path on ceph node to check for when snapshots are done
     MIN_FREESPACE            # min freespace to leave on ceph node for exporting qcow temporarily
     SH_LOGGING               # verbose log for sh module
 
@@ -58,7 +61,7 @@ Setup on the backup node:
 
 This will ssh to the ceph node ("source") and gather a list of rbd devices to back up.  Then it will iterate over that list, connecting to the ceph node to export each one in turn to qcow in a temp directory, and then running rsnapshot to backup that one qcow, then connecting again to the ceph node to remove the temp qcow.
 
-The qcow images go into (on the backup node): <BACKUP_BASE_PATH>/<POOL>/<image-name>/<daily.NN>/<image-name>.qcow2
+The qcow images go into (on the backup node): `<BACKUP_BASE_PATH>/<POOL>/<image-name>/<daily.NN>/<image-name>.qcow2`
 
 This script will also rotate orphaned images that no longer exist on the source (by running rsnap with an empty source), so they will roll off after retain_interval.
 
@@ -70,9 +73,9 @@ Parameters:
                           [--image_re IMAGE_RE] [-v] [--noop]
                           [--no_rotate_orphans] [--printsettings] [-k]
                           [-e EXTRALONGARGS]
-    
+
     wrapper script to backup a ceph pool of rbd images to qcow
-    
+
     optional arguments:
       -h, --help            show this help message and exit
       -c CONFIG, --config CONFIG
