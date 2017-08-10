@@ -25,19 +25,19 @@ def check_set_dir_perms(directory, perms=0o700):
                                                                  directory))
 
 
-def setup_dir(directory):
+def setup_dir(directory, perms=0o700):
     logger = logs.get_logger()
     if not os.path.isdir(directory):
         # make dir and preceeding dirs if necessary
         if settings.NOOP:
             logger.info('NOOP: would have run makedirs on path %s' % directory)
         else:
-            logger.info('creating directory 0700 %s' % directory)
-            os.makedirs(directory, 0700)
+            logger.info('creating directory %o %s' % (perms, directory))
+            os.makedirs(directory, perms)
     else:
         logger.info('directory %s already exists, so using it' % directory)
         # still need to check perms
-        check_set_dir_perms(directory)
+        check_set_dir_perms(directory, perms)
 
 
 def setup_backup_dirs_for_pool(pool='', dirs=''):
@@ -70,7 +70,7 @@ def setup_log_dirs_for_pool(pool=''):
         "%s/rsnap/%s" % (settings.LOG_BASE_PATH, pool),
     ]
     for directory in dirs:
-        setup_dir(directory)
+        setup_dir(directory, perms=0o755)
 
 
 def setup_temp_conf_dir_for_pool(pool=''):
