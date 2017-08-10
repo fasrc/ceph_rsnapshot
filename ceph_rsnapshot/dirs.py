@@ -32,7 +32,7 @@ def setup_dir(directory, perms=0o700):
         if settings.NOOP:
             logger.info('NOOP: would have run makedirs on path %s' % directory)
         else:
-            logger.info('creating directory 0700 %s' % directory)
+            logger.info('creating directory %o %s' % (perms, directory))
             os.makedirs(directory, perms)
     else:
         logger.info('directory %s already exists, so using it' % directory)
